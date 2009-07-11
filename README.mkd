@@ -11,12 +11,14 @@ Usage
 
 Enter a directory with an existing *.ftp_upstream* file in the following
 format:
+
 `upstream=ftp://user@ftpserver.com/path`
-and execute *ftpsync*. It will send all missing and different files from the
-local directory to the FTP server.
+
+When you execute *ftpsync* in this directory, it will send all missing and
+different files from the local directory to the FTP server.
 
 ftpsync uses *.netrc* to discover the password of the FTP server, see
-__netrc (5)__ for help setting that up.
+*netrc (5)* for help setting that up.
 
 
 How it works
