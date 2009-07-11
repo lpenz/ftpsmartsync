@@ -1,0 +1,234 @@
+#!/usr/bin/env python
+
+import ftplib
+from netrc import netrc
+import os
+import hashlib
+import re
+from sets import Set
+from tempfile import TemporaryFile
+import socket
+import string
+import sys
+import getopt
+import random
+
+
+
+USAGE = string.join([
+    'Usage: %s [-h] [-s]' % sys.argv[0],
+    '  Syncs local dir with remote FTP.',
+    '  -s, --safe      Safe mode: sends hashes.txt after every successful file transfer.',
+    ], '\n')
+
+
+hashfilename = 'hashes.txt'
+
+
+
+def uptime():
+    fd = open('/proc/uptime')
+    upt = fd.read().split('.')[0]
+    return int(upt)
+
+
+
+def ftpUpstreamGet():
+    fd = open('.ftp_upstream')
+    r = re.compile('^upstream=ftp://([a-zA-Z0-9]+)@([a-zA-Z0-9.]+)/([a-zA-Z0-9./]+)$')
+    m = r.match(fd.read())
+    return m.group(1), m.group(2), m.group(3)
+
+
+
+class Ftp():
+    def __init__(self, user, host, path):
+        self.user = user
+        self.host = host
+        self.path = path
+        self.hashespending = False
+        self.connect()
+
+    def connect(self):
+        auth = netrc().authenticators(self.host)
+        assert self.user == auth[0]
+        ftp = ftplib.FTP(self.host, auth[0], auth[2])
+        ftp.cwd(self.path)
+        #ftp.set_debuglevel(1)
+        self.ftp = ftp
+        self.dirs = Set()
+
+    def sendHashes(self, localHashes):
+        if not self.hashespending:
+            return
+        print '+ Sending hashes'
+        tmpfile = TemporaryFile()
+        for f in localHashes.keys():
+            tmpfile.write('%s %s\n' % (f, localHashes[f]))
+        tmpfile.seek(0)
+        self.ftp.storlines('STOR %s' % hashfilename + '.tmp', tmpfile)
+        self.ftp.rename(hashfilename+'.tmp', hashfilename)
+        self.hashespending = False
+
+    def mkdir(self, dir):
+        if dir == '' or dir in self.dirs:
+            return
+        self.mkdir(os.path.split(dir)[0])
+        try:
+            self.ftp.mkd(dir)
+        except ftplib.error_perm:
+            pass
+        self.dirs.add(dir)
+
+    def filesGet(self):
+        remoteFiles = Set()
+        remoteHashes = {}
+        def remoteHashesGet(l):
+            r = re.compile('^(.+) ([a-f0-9]+)$')
+            m = r.match(l)
+            remoteFiles.add(m.group(1))
+            remoteHashes[m.group(1)] = m.group(2)
+
+        try:
+            self.ftp.retrlines('RETR %s' % hashfilename, remoteHashesGet)
+        except ftplib.error_perm:
+            pass
+
+        return remoteFiles, remoteHashes
+
+    def fileSend(self, filename):
+        self.mkdir(os.path.dirname(filename))
+        fd = open(filename)
+        try:
+            self.ftp.storbinary('STOR %s' % filename, fd)
+            self.hashespending = True
+        except socket.error:
+            self.connect()
+            return False
+        except ftplib.error_temp:
+            self.connect()
+            return False
+        return True
+
+    def delete(self, f):
+        try:
+            self.ftp.delete(f)
+            self.hashespending = True
+        except ftplib.error_perm:
+            pass
+
+
+
+
+def filesget(filelist, entry):
+    assert os.path.exists(entry)
+    if os.path.isdir(entry):
+        for e in os.listdir(entry):
+            filesget(filelist, os.path.join(entry, e))
+    else:
+        filelist.append(os.path.normpath(entry))
+    return filelist
+
+
+
+def localFilesGet():
+    localFiles = set()
+    localHashes = {}
+
+    filelist = filesget([], '././')
+    filelist.sort()
+
+    for f in filelist:
+        fd = open(f, 'r')
+        h = hashlib.sha1()
+        h.update(fd.read())
+        localHashes[f] = h.hexdigest()
+
+    return Set(filelist), localHashes
+
+
+def doit(cfg):
+    mainRV = 0
+
+    user, host, path = ftpUpstreamGet()
+
+    ftp = Ftp(user, host, path)
+    print '+ Connected to %s@%s/%s' % (user, host, path)
+
+    localFiles, localHashes = localFilesGet()
+    print '+ Got %d local hashes' % len(localFiles)
+
+    remoteFiles, remoteHashes = ftp.filesGet()
+    print '+ Got %d remote hashes' % len(remoteFiles)
+
+    print '+ Deleting remote files'
+    todel = remoteFiles.difference(localFiles)
+    j = 0
+    jtotal = len(todel)
+    for f in todel:
+        if f == hashfilename:
+            continue
+        ftp.delete(f)
+        print '+ %4d/%-4d deleted %s' % (j, jtotal, f)
+        remoteFiles.discard(f)
+        del remoteHashes[f]
+
+    tosend = Set()
+    okHashes = {}
+
+    for f in localFiles:
+        if not f in remoteFiles or localHashes[f] != remoteHashes[f]:
+            tosend.add(f)
+        else:
+            okHashes[f] = remoteHashes[f]
+
+    ftp.sendHashes(okHashes)
+
+    print '+ Sending files'
+    sentHashes = {}
+    i = 0
+    itotal = len(tosend)
+    lastupt = uptime()
+    lastlen = 0
+    tosendList = [x for x in tosend]
+    random.shuffle(tosendList)
+    for f in tosendList:
+        i = i + 1
+        if f == 'hashes.txt':
+            print '+ %4d/%-4d skipping %s' % (i, itotal, f)
+            continue
+        print '+ %4d/%-4d sending %s' % (i, itotal, f)
+        if ftp.fileSend(f):
+            sentHashes[f] = localHashes[f]
+            okHashes[f] = localHashes[f]
+        else:
+            print '- ERROR sending %s' % (f)
+            mainRV = 1
+            ftp.sendHashes(okHashes)
+        if cfg.has_key('safe') or (len(okHashes) > lastlen and uptime() - lastupt > 30):
+            ftp.sendHashes(okHashes)
+            lastupt = uptime()
+            lastlen = len(okHashes)
+
+    ftp.sendHashes(okHashes)
+
+    print '+ Summary: sent %d files, deleted %d files, %d files could not be sent' % (len(sentHashes), len(todel), len(tosend) - len(sentHashes))
+
+    return mainRV
+
+
+if __name__ == '__main__':
+    cfg = {}
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], 'hs', ['help', 'safe'])
+    except getopt.GetoptError:
+        usage()
+        sys.exit(2)
+    for o, a in opts:
+        if o in ('-h', '--help'):
+            usage()
+            sys.exit(0)
+        if o in ('-s', '--safe'):
+            cfg['safe'] = True
+    sys.exit(doit(cfg))
+
