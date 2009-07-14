@@ -3,7 +3,7 @@ ftpsync
 
 By Leandro Penz
 
-ftpsync is a simple python script that syncs a local directory with a remote FTP in an effective way.
+__ftpsync__ is a simple python script that syncs a local directory with a remote FTP in an effective way.
 
 
 Usage
@@ -18,13 +18,13 @@ When you execute *ftpsync* in this directory, it will send all missing and
 different files from the local directory to the FTP server.
 
 ftpsync uses *.netrc* to discover the password of the FTP server, see
-*netrc (5)* for help setting that up.
+*netrc (5)* for help.
 
 
 How it works
 ------------
 
-ftpsync works by calculating the MD5 of all local local files from the local
+ftpsync works by calculating the MD5 of all files from the local
 directory and storing it in a __hashes.txt__ file on the remote server.
 
 By retrieving that file and comparing the stored hashes with the newly
