@@ -1,0 +1,59 @@
+ftpsync
+
+
+
+= NAME =
+
+ftpsync - sincronizes a directory with an FTP host efficiently.
+
+
+
+= SYNOPSIS =
+
+**ftpsync** [-h]
+**ftpsync** [-n]
+
+
+
+= DESCRIPTION =
+
+**ftpsync** is a program that sincronizes all files beneath the current
+directory with an FTP host efficiently.
+
+The destination host is identified by a //.ftp_upstream// in the current
+directory that must have the following line:
+```
+upstream=ftp://user@host/path
+```
+The password is found by looking at //~/.netrc//, see **netrc**(5).
+
+ftpsync sends all files in the current directory to the target host, and stores
+the MD5 of the sent files in a //hashes.txt// files in the remote host. When
+syncing again, it checks the MD5 of each file against the one stored in the
+remote //hashes.txt// file, and only sends the files that are different. This
+makes ftpsync very efficient when sincronizing a directory with only a few
+different files, as long as they are always sent by ftpsync.
+
+
+
+
+= OPTIONS =
+
+**-h** Help.
+
+**-q** Quiet mode.
+
+
+
+= AUTHOR =
+
+Written by Leandro Penz
+
+
+
+= SEE ALSO =
+
+**ftp**(1), **netrc**(5)
+
+
+
