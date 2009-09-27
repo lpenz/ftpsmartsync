@@ -21,10 +21,13 @@ USAGE = string.join([
     '  -s, --safe      Safe mode: sends hashes.txt after every successful file transfer.',
     ], '\n')
 
+def usage():
+    print USAGE
 
-hashfilename = 'hashes.txt'
 
+HASHFILENAME = 'hashes.txt'
 
+# Useful functions: ##########################################################
 
 def uptime():
     fd = open('/proc/uptime')
@@ -34,12 +37,26 @@ def uptime():
 
 
 def ftpUpstreamGet():
-    fd = open('.ftp_upstream')
+    try:
+        fd = open('.ftp_upstream')
+    except IOError:
+        return False, '.ftp_upstream: file not found.', False
     r = re.compile('^upstream=ftp://([a-zA-Z0-9]+)@([a-zA-Z0-9.]+)/([a-zA-Z0-9./]+)$')
     m = r.match(fd.read())
+    if not m:
+        return False, '.ftp_upstream: invalid syntax.', False
     return m.group(1), m.group(2), m.group(3)
 
 
+class Printer(object):
+    def __init__(self, enable):
+        self.enable = enable
+    def msg(self, str):
+        if not self.enable:
+            return
+        print str
+
+# Main Ftp class: ############################################################
 
 class Ftp():
     def __init__(self, user, host, path):
@@ -66,8 +83,8 @@ class Ftp():
         for f in localHashes.keys():
             tmpfile.write('%s %s\n' % (f, localHashes[f]))
         tmpfile.seek(0)
-        self.ftp.storlines('STOR %s' % hashfilename + '.tmp', tmpfile)
-        self.ftp.rename(hashfilename+'.tmp', hashfilename)
+        self.ftp.storlines('STOR %s' % HASHFILENAME + '.tmp', tmpfile)
+        self.ftp.rename(HASHFILENAME+'.tmp', HASHFILENAME)
         self.hashespending = False
 
     def mkdir(self, dir):
@@ -90,7 +107,7 @@ class Ftp():
             remoteHashes[m.group(1)] = m.group(2)
 
         try:
-            self.ftp.retrlines('RETR %s' % hashfilename, remoteHashesGet)
+            self.ftp.retrlines('RETR %s' % HASHFILENAME, remoteHashesGet)
         except ftplib.error_perm:
             pass
 
@@ -118,7 +135,7 @@ class Ftp():
             pass
 
 
-
+# Local files processing: ####################################################
 
 def filesget(filelist, entry):
     assert os.path.exists(entry)
@@ -147,29 +164,38 @@ def localFilesGet():
     return Set(filelist), localHashes
 
 
+# Core function: #############################################################
+
 def doit(cfg):
+    p = Printer(not cfg.has_key('quiet'))
+
     mainRV = 0
 
     user, host, path = ftpUpstreamGet()
+    if not user:
+        sys.stderr.write('%s\n' % host)
+        return 1
+
+    p.msg('+ Upstream is %s@%s/%s' % (user, host, path))
 
     ftp = Ftp(user, host, path)
-    print '+ Connected to %s@%s/%s' % (user, host, path)
+    p.msg('+ Connected')
 
     localFiles, localHashes = localFilesGet()
-    print '+ Got %d local hashes' % len(localFiles)
+    p.msg('+ Got %d local hashes' % len(localFiles))
 
     remoteFiles, remoteHashes = ftp.filesGet()
-    print '+ Got %d remote hashes' % len(remoteFiles)
+    p.msg('+ Got %d remote hashes' % len(remoteFiles))
 
-    print '+ Deleting remote files'
+    p.msg('+ Deleting remote files')
     todel = remoteFiles.difference(localFiles)
     j = 0
     jtotal = len(todel)
     for f in todel:
-        if f == hashfilename:
+        if f == HASHFILENAME:
             continue
         ftp.delete(f)
-        print '+ %4d/%-4d deleted %s' % (j, jtotal, f)
+        p.msg('+ %4d/%-4d deleted %s' % (j, jtotal, f))
         remoteFiles.discard(f)
         del remoteHashes[f]
 
@@ -184,7 +210,7 @@ def doit(cfg):
 
     ftp.sendHashes(okHashes)
 
-    print '+ Sending files'
+    p.msg('+ Sending files')
     sentHashes = {}
     i = 0
     itotal = len(tosend)
@@ -195,14 +221,14 @@ def doit(cfg):
     for f in tosendList:
         i = i + 1
         if f == 'hashes.txt':
-            print '+ %4d/%-4d skipping %s' % (i, itotal, f)
+            p.msg('+ %4d/%-4d skipping %s' % (i, itotal, f))
             continue
-        print '+ %4d/%-4d sending %s' % (i, itotal, f)
+        p.msg('+ %4d/%-4d sending %s' % (i, itotal, f))
         if ftp.fileSend(f):
             sentHashes[f] = localHashes[f]
             okHashes[f] = localHashes[f]
         else:
-            print '- ERROR sending %s' % (f)
+            p.msg('- ERROR sending %s' % (f))
             mainRV = 1
             ftp.sendHashes(okHashes)
         if cfg.has_key('safe') or (len(okHashes) > lastlen and uptime() - lastupt > 30):
@@ -212,16 +238,18 @@ def doit(cfg):
 
     ftp.sendHashes(okHashes)
 
-    print '+ Summary: sent %d files, deleted %d files, %d files could not be sent' % (len(sentHashes), len(todel), len(tosend) - len(sentHashes))
+    p.msg('+ Summary: sent %d files, deleted %d files, %d files could not be sent' % (len(sentHashes), len(todel), len(tosend) - len(sentHashes)))
 
     return mainRV
 
 
-if __name__ == '__main__':
+
+def main():
     cfg = {}
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'hs', ['help', 'safe'])
-    except getopt.GetoptError:
+        opts, args = getopt.getopt(sys.argv[1:], 'hsq', ['help', 'safe', 'quiet'])
+    except getopt.GetoptError, msg:
+        print 'Error: %s' % msg
         usage()
         sys.exit(2)
     for o, a in opts:
@@ -230,5 +258,11 @@ if __name__ == '__main__':
             sys.exit(0)
         if o in ('-s', '--safe'):
             cfg['safe'] = True
+        if o in ('-q', '--quiet'):
+            cfg['quiet'] = True
     sys.exit(doit(cfg))
+
+
+if __name__ == '__main__':
+    main()
 
