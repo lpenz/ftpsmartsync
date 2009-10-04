@@ -10,7 +10,8 @@ ftpsync - sincronizes a directory with an FTP host efficiently.
 
 = SYNOPSIS =
 
-**ftpsync** [-h]
+**ftpsync** -h
+
 **ftpsync** [-n]
 
 
@@ -31,7 +32,7 @@ ftpsync sends all files in the current directory to the target host, and stores
 the MD5 of the sent files in a //hashes.txt// files in the remote host. When
 syncing again, it checks the MD5 of each file against the one stored in the
 remote //hashes.txt// file, and only sends the files that are different. This
-makes ftpsync very efficient when sincronizing a directory with only a few
+makes ftpsync very efficient when synchronizing a directory with only a few
 different files, as long as they are always sent by ftpsync.
 
 
