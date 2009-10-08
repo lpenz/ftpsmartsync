@@ -15,7 +15,8 @@ h1. DESCRIPTION
 
 The destination host is identified by a _.ftp_upstream_ in the current directory that must have the following line:
 
-pre.  upstream=ftp://user@host/path
+pre. 
+upstream=ftp://user@host/path
 
 
 
