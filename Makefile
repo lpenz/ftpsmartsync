@@ -1,6 +1,7 @@
 
 DESTDIR=/usr/local
 BINDIR=$(DESTDIR)/bin
+MANDIR=$(DESTDIR)/share/man
 
 CFLAGS=-Wall -Werror
 
@@ -18,7 +19,9 @@ README.textile: manual.t2t
 clean:
 	rm -f ftpsync.1
 
-install:
+install: ftpsync.1
 	mkdir -p $(BINDIR)
 	install ftpsync $(BINDIR)/ftpsync
+	mkdir -p $(MANDIR)/man1
+	install execpermfix.1 $(MANDIR)/man1/execpermfix.1
 
