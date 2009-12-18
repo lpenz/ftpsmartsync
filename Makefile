@@ -1,7 +1,7 @@
 
-DESTDIR=/usr/local
-BINDIR=$(DESTDIR)/bin
-MANDIR=$(DESTDIR)/share/man
+PREFIX=/usr/local
+BINDIR=$(PREFIX)/bin
+MANDIR=$(PREFIX)/share/man
 
 CFLAGS=-Wall -Werror
 
