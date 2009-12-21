@@ -4,15 +4,18 @@
 import sys
 import os
 try:
-    f = open("~/.netrc")
+    f = open("/home/%s/.netrc" % os.environ['USERNAME'])
 except IOError:
     try:
         import gtk, gnomekeyring
     except:
-        print "cannot open ~/.netrc and gnomekeyring isn't available."
+        print "cannot open /home/%s/.netrc and gnomekeyring isn't available." % os.environ['USERNAME']
         sys.exit(1)
     else:
         gtkpresence = 1
+else:
+    f.close()
+
 from netrc import netrc
 import ftplib
 import hashlib
