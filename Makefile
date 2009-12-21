@@ -23,5 +23,5 @@ install: ftpsync.1
 	mkdir -p $(BINDIR)
 	install ftpsync $(BINDIR)/ftpsync
 	mkdir -p $(MANDIR)/man1
-	install execpermfix.1 $(MANDIR)/man1/execpermfix.1
+	install ftpsync.1 $(MANDIR)/man1/ftpsync.1
 
