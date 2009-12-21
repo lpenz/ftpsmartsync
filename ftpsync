@@ -11,12 +11,13 @@ try:
     f = open("/home/%s/.netrc" % os.environ['USERNAME'])
 except IOError:
     try:
-        import gtk, gnomekeyring
-    except:
+        import gtk
+        import gnomekeyring
+    except ImportError:
         print "cannot open /home/%s/.netrc and gnomekeyring isn't available." % os.environ['USERNAME']
         sys.exit(1)
     else:
-        gtkpresence = 1
+        gtkpresence = True
 else:
     f.close()
 
@@ -80,7 +81,7 @@ class Ftp():
     def connect(self):
         try:
             auth = netrc().authenticators(self.host)
-        except IOError:
+        except IOError, msgio:
             if gtkpresence:
                 try:
                     items = gnomekeyring.find_items_sync(gnomekeyring.ITEM_NETWORK_PASSWORD, {"server": self.host, "protocol": "ftp", "user": self.user})
@@ -89,10 +90,13 @@ class Ftp():
                     else:
                         raise Exception('gnomekeyring','NoMatchError')
                 except gnomekeyring.DeniedError:
-                    print 'Gnome keyring error: Access Denied'
+                    sys.stderr.write("\nGnome keyring error : Access denied ..\nnetrc error: %s\n" % (msgio))
                     sys.exit(1)
                 except gnomekeyring.NoMatchError:
-                    print 'Gnome keyring error: no credentials found for ' % self.host
+                    sys.stderr.write("\nGnome keyring error : No credential for %s..\nnetrc error: %s\n" % (self.host, msgio)
+                    sys.exit(1)
+                except Exception, msg:
+                    sys.stderr.write("\nGnome keyring error : %s\nnetrc error: %s\n" % (msg, msgio))
                     sys.exit(1)
                     
         else:
