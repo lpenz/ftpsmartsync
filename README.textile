@@ -1,7 +1,7 @@
 
 h1. NAME
 
-ftpsync - sincronizes a directory with an FTP host efficiently.
+ftpsync - synchronizes a directory with an FTP host efficiently.
 
 h1. SYNOPSIS
 

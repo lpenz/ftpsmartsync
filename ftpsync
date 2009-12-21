@@ -1,5 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+""" A tool to synchronize the current directory remotly using FTP.
+
+For usage, run ``ftpsync.py --help``.
+"""
 
 import sys
 import os
@@ -270,8 +274,8 @@ def main():
     parser = OptionParser(usage="Usage: %prog [-h] [-s]",
                           version="%prog "+__version__,
                           description='''\
-                          
-ftpsync is a program that sincronizes all files beneath the
+
+ftpsync is a program that synchronize all files beneath the
 current directory with an FTP host efficiently.
 
 The destination host is identified by a .ftp_upstream in the
