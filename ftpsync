@@ -84,14 +84,16 @@ class Ftp():
             if gtkpresence:
                 try:
                     items = gnomekeyring.find_items_sync(gnomekeyring.ITEM_NETWORK_PASSWORD, {"server": self.host, "protocol": "ftp", "user": self.user})
-                    if len(items) == 0:
-                        raise Exception('gnomekeyring','nothing found')
+                    if len(items) > 0:
+                        ftp = ftplib.FTP(self.host, self.user, item[0].secret)
+                    else:
+                        raise Exception('gnomekeyring','NoMatchError')
                 except gnomekeyring.DeniedError:
-                    print 'cannot open', arg
+                    print 'Gnome keyring error: Access Denied'
                     sys.exit(1)
-                else:
-                    item = gnomekeyring.find_items_sync(gnomekeyring.ITEM_NETWORK_PASSWORD, {"server": self.host, "protocol": "ftp", "user": self.user})
-                    ftp = ftplib.FTP(self.host, self.user, item[0].secret)
+                except gnomekeyring.NoMatchError:
+                    print 'Gnome keyring error: no credentials found for ' % self.host
+                    sys.exit(1)
                     
         else:
             assert self.user == auth[0]
