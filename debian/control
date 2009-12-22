@@ -4,6 +4,8 @@ Priority: extra
 Maintainer: Leandro Lisboa Penz <lpenz@terra.com.br>
 Build-Depends: debhelper (>= 7.0.50)
 Standards-Version: 3.8.3
+Vcs-Browser: http://github.com/lpenz/ftpsync
+Vcs-Git: git://github.com/lpenz/ftpsync.git
 Homepage: http://github.com/lpenz/ftpsync
 
 Package: ftpsync
