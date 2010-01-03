@@ -25,7 +25,6 @@ from netrc import netrc
 import ftplib
 import hashlib
 import re
-#from sets import Set
 from tempfile import TemporaryFile
 import socket
 import string
@@ -98,7 +97,7 @@ class Ftp():
                 except Exception, msg:
                     sys.stderr.write("\nGnome keyring error : %s\nnetrc error: %s\n" % (msg, msgio))
                     sys.exit(1)
-                    
+
         else:
             assert self.user == auth[0]
             ftp = ftplib.FTP(self.host, auth[0], auth[2])
@@ -306,7 +305,7 @@ as long as they are always sent by ftpsync.
                       action="store_true", default=False,
                       help="")
     (cfg, args) = parser.parse_args()
-    
+
     sys.exit(doit(cfg))
 
 
