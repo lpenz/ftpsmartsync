@@ -1,7 +1,7 @@
 Source: ftpsync
 Section: python
 Priority: extra
-Maintainer: Leandro Lisboa Penz <lpenz@terra.com.br>
+Maintainer: Leandro Lisboa Penz <llpenz@gmail.com>
 Build-Depends: debhelper (>= 7.0.50)
 Standards-Version: 3.8.3
 Vcs-Browser: http://github.com/lpenz/ftpsync
