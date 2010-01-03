@@ -4,7 +4,7 @@ ftpsync
 
 = NAME =
 
-ftpsync - sincronizes a directory with an FTP host efficiently.
+ftpsync - synchronizes a directory with an FTP host efficiently.
 
 
 
@@ -18,7 +18,7 @@ ftpsync - sincronizes a directory with an FTP host efficiently.
 
 = DESCRIPTION =
 
-**ftpsync** is a program that sincronizes all files beneath the current
+**ftpsync** is a program that synchronizes all files beneath the current
 directory with an FTP host efficiently.
 
 The destination host is identified by a //.ftp_upstream// in the current

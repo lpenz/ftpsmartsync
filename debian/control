@@ -13,4 +13,4 @@ Architecture: all
 Depends: ${misc:Depends}, python, ${python:Depends}
 Description: Efficient FTP synchronization
  This utility maintains a hashes.txt file in the remote server, and uses it
- to recognize which files need to be updated when re-synchornizing.
+ to recognize which files need to be updated when re-synchronizing.
