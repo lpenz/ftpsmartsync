@@ -1,0 +1,16 @@
+Source: ftpsync
+Section: python
+Priority: extra
+Maintainer: Leandro Lisboa Penz <lpenz@terra.com.br>
+Build-Depends: debhelper (>= 7.0.50)
+Standards-Version: 3.8.3
+Vcs-Browser: http://github.com/lpenz/ftpsync
+Vcs-Git: git://github.com/lpenz/ftpsync.git
+Homepage: http://github.com/lpenz/ftpsync
+
+Package: ftpsync
+Architecture: all
+Depends: ${misc:Depends}, python, ${python:Depends}
+Description: Efficient FTP synchronization
+ This utility maintains a hashes.txt file in the remote server, and uses it
+ to recognize which files need to be updated when re-synchronizing.
