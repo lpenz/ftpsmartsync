@@ -92,7 +92,7 @@ class Ftp():
                     sys.stderr.write("\nGnome keyring error : Access denied ..\nnetrc error: %s\n" % (msgio))
                     sys.exit(1)
                 except gnomekeyring.NoMatchError:
-                    sys.stderr.write("\nGnome keyring error : No credential for %s..\nnetrc error: %s\n" % (self.host, msgio)
+                    sys.stderr.write("\nGnome keyring error : No credential for %s..\nnetrc error: %s\n" % (self.host, msgio))
                     sys.exit(1)
                 except Exception, msg:
                     sys.stderr.write("\nGnome keyring error : %s\nnetrc error: %s\n" % (msg, msgio))
