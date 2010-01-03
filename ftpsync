@@ -8,7 +8,7 @@ For usage, run ``ftpsync.py --help``.
 import sys
 import os
 try:
-    f = open("/home/%s/.netrc" % os.environ['USERNAME'])
+    f = open("/home/%s/.netrc" % os.environ['USER'])
 except IOError:
     try:
         import gtk
