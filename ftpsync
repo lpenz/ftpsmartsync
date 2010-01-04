@@ -85,7 +85,7 @@ class Ftp():
                 try:
                     items = gnomekeyring.find_items_sync(gnomekeyring.ITEM_NETWORK_PASSWORD, {"server": self.host, "protocol": "ftp", "user": self.user})
                     if len(items) > 0:
-                        ftp = ftplib.FTP(self.host, self.user, item[0].secret)
+                        ftp = ftplib.FTP(self.host, self.user, items[0].secret)
                     else:
                         raise Exception('gnomekeyring','NoMatchError')
                 except gnomekeyring.DeniedError:
