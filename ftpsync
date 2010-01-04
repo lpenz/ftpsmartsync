@@ -101,7 +101,11 @@ class Ftp():
         else:
             assert self.user == auth[0]
             ftp = ftplib.FTP(self.host, auth[0], auth[2])
-        ftp.cwd(self.path)
+        try:
+            ftp.cwd(self.path)
+        except ftplib.error_perm:
+            ftp.mkd(self.path)
+            ftp.cwd(self.path)
         #ftp.set_debuglevel(1)
         self.ftp = ftp
         self.dirs = set()
