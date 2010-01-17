@@ -5,7 +5,9 @@ ftpsync - synchronizes a directory with an FTP host efficiently.
 
 h1. SYNOPSIS
 
-**ftpsync** [options]
+**ftpsync** -h
+
+**ftpsync** [-q] [-s]
 
 h1. DESCRIPTION
 
@@ -18,31 +20,25 @@ ftp://user@host/path
 
 
 
-The password is found by looking at _~/.netrc_, see "**netrc**(5)":netrc.
-If netrc is unavailable, then gnome-keyring take over. For more information about gnome-keyring, please refer "to the wiki":http://wiki.github.com/xrogaan/ftpsync/.
+The password is found by looking at _~/.netrc_, see **netrc**(5). If netrc is unavailable, then gnome-keyring is used. For more information about gnome-keyring, please refer to http://wiki.github.com/xrogaan/ftpsync/.
 
 ftpsync sends all files in the current directory to the target host, and stores the MD5 of the sent files in a _hashes.txt_ files in the remote host. When syncing again, it checks the MD5 of each file against the one stored in the remote _hashes.txt_ file, and only sends the files that are different. This makes ftpsync very efficient when synchronizing a directory with only a few different files, as long as they are always sent by ftpsync.
 
-
-
 h1. OPTIONS
 
-**-h** Show the help then exit.
+**-h** Help.
+
 **-q** Quiet mode.
+
 **-s** Safe mode: sends hashes.txt after every successful file transfer.
 
+h1. AUTHORS
 
-h1. AUTHOR
+Originaly written by "Leandro Penz":http://lpenz.github.com
 
-Originaly written by "Leandro Penz":http://github.com/lpenz
-
-h1. CONTRIBUTORS
-
-"Bellière Ludovic":http://github.com/xrogaan
+gnome-keyring and fixes by "Bellière Ludovic":http://github.com/xrogaan
 
 h1. SEE ALSO
 
-"**ftp**(1)":ftp, "**netrc**(5)":netrc
+**ftp**(1), **netrc**(5)
 
-[netrc]http://linux.die.net/man/5/netrc
-[ftp]http://linux.die.net/man/1/ftp
