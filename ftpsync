@@ -96,7 +96,7 @@ class Ftp():
                         except Exception, msg:
                             sys.stderr.write("\nUnable to unlock your keychain: %s" % msg)
                         else:
-                            print "+ [%s] unlocked."
+                            print "+ [%s] unlocked." % keyring
                             items = gnomekeyring.find_items_sync(gnomekeyring.ITEM_NETWORK_PASSWORD,
                                                                  {"server": self.host,
                                                                   "protocol": "ftp",
