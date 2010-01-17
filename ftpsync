@@ -31,6 +31,7 @@ import string
 import random
 from optparse import OptionParser
 from urlparse import urlparse
+from getpass import getpass
 
 PROGRAM_NAME="ftpsync"
 PROGRAM_VERSION="1.0.1"
@@ -85,11 +86,24 @@ class Ftp():
         except IOError, msgio:
             if gtkpresence:
                 try:
-                    items = gnomekeyring.find_items_sync(gnomekeyring.ITEM_NETWORK_PASSWORD, {"server": self.host, "protocol": "ftp", "user": self.user})
-                    if len(items) > 0:
-                        ftp = ftplib.FTP(self.host, self.user, items[0].secret)
-                    else:
-                        raise Exception('gnomekeyring','NoMatchError')
+                    keyring = gnomekeyring.get_default_keyring_sync()
+                    keyring_info = gnomekeyring.get_info_sync(keyring)
+                    if keyring_info.get_is_locked():
+                        keyring_pass = getpass('Enter password to unlock your keychain [%s]: ' % (keyring))
+                        try:
+                            gnomekeyring.unlock_sync( keyring, keyring_pass )
+                        except Exception, msg:
+                            sys.stderr.write("\nUnable to unlock your keychain: %s" % msg)
+                        else:
+                            print "+ [%s] unlocked."
+                            items = gnomekeyring.find_items_sync(gnomekeyring.ITEM_NETWORK_PASSWORD,
+                                                                 {"server": self.host,
+                                                                  "protocol": "ftp",
+                                                                  "user": self.user})
+                            if len(items) > 0:
+                                ftp = ftplib.FTP(self.host, self.user, items[0].secret)
+                            else:
+                                raise Exception('gnomekeyring','NoMatchError')
                 except gnomekeyring.DeniedError:
                     sys.stderr.write("\nGnome keyring error : Access denied ..\nnetrc error: %s\n" % (msgio))
                     sys.exit(1)
@@ -218,10 +232,14 @@ def doit(cfg):
     if not o.username:
         sys.stderr.write('username not given: %s\n' % o.geturl())
         sys.exit(1)
+    remote_path = os.path.normpath(o[2] or '/') # ensure the remote path contain at least a '/'
+    if remote_path.startswith('//'):
+        remote_path = remote_path[1:]
+    assert remote_path.startswith('/').`remote_path`
     
     p.msg('+ Upstream is %s' % o.geturl())
     # TODO support the port if given
-    ftp = Ftp(o.username, o.hostname, o.path)
+    ftp = Ftp(o.username, o.hostname, remote_path)
     p.msg('+ Connected')
 
     localFiles, localHashes = localFilesGet()
