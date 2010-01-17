@@ -14,7 +14,7 @@ except IOError:
         import gtk
         import gnomekeyring
     except ImportError:
-        print "cannot open /home/%s/.netrc and gnomekeyring isn't available." % os.environ['USERNAME']
+        print "cannot open /home/%s/.netrc and gnomekeyring isn't available." % os.environ['USER']
         sys.exit(1)
     else:
         gtkpresence = True
@@ -83,7 +83,7 @@ class Ftp():
 
     def connect(self):
         try:
-            auth = netrc().authenticators(self.host)
+            auth = netrc().authenticators(self.host) # TODO check if the host exists in netrc
         except IOError, msgio:
             if gtkpresence:
                 try:
