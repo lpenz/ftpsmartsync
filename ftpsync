@@ -43,8 +43,10 @@ HASHFILENAME = 'hashes.txt'
 # Useful functions: ##########################################################
 
 def uptime():
-    fd = open('/proc/uptime')
-    upt = fd.read().split('.')[0]
+    '''Uptime used as a monotonic clock.'''
+    uptfile = open('/proc/uptime')
+    upt = uptfile.read().split('.')[0]
+    uptfile.close()
     return int(upt)
 
 
