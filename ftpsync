@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 """ A tool to synchronize the current directory remotly using FTP.
 
 For usage, run ``ftpsync.py --help``.
@@ -235,7 +236,7 @@ def doit(cfg):
     remote_path = os.path.normpath(o[2] or '/') # ensure the remote path contain at least a '/'
     if remote_path.startswith('//'):
         remote_path = remote_path[1:]
-    assert remote_path.startswith('/').`remote_path`
+    assert remote_path.startswith('/'),`remote_path`
     
     p.msg('+ Upstream is %s' % o.geturl())
     # TODO support the port if given
