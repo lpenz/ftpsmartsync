@@ -30,6 +30,7 @@ import socket
 import string
 import random
 from optparse import OptionParser
+from urlparse import urlparse
 
 PROGRAM_NAME="ftpsync"
 PROGRAM_VERSION="1.0.1"
@@ -46,12 +47,13 @@ def uptime():
     return int(upt)
 
 
-
+# DEPRECATED this function shouldn't be called anymore
 def ftpUpstreamGet():
     try:
         fd = open('.ftp_upstream')
     except IOError:
         return False, '.ftp_upstream: file not found.', False
+    
     r = re.compile('^upstream=ftp://([a-zA-Z0-9]+)@([a-zA-Z0-9.]+)/([a-zA-Z0-9./]+)$')
     m = r.match(fd.read())
     if not m:
@@ -206,14 +208,20 @@ def doit(cfg):
 
     mainRV = 0
 
-    user, host, path = ftpUpstreamGet()
-    if not user:
-        sys.stderr.write('%s\n' % host)
-        return 1
+    try:
+        fd = open('.ftp_upstream')
+    except IOError:
+        sys.stderr.write('.ftp_upstream: file not found')
+        sys.exit(1)
 
-    p.msg('+ Upstream is %s@%s/%s' % (user, host, path))
-
-    ftp = Ftp(user, host, path)
+    o = urlparse(fd.read(),'ftp')
+    if not o.username:
+        sys.stderr.write('username not given: %s\n' % o.geturl())
+        sys.exit(1)
+    
+    p.msg('+ Upstream is %s' % o.geturl())
+    # TODO support the port if given
+    ftp = Ftp(o.username, o.hostname, o.path)
     p.msg('+ Connected')
 
     localFiles, localHashes = localFilesGet()
@@ -283,7 +291,6 @@ def main():
     parser = OptionParser(usage="Usage: %prog [-h] [-s]",
                           version="%prog "+__version__,
                           description='''\
-
 ftpsync is a program that synchronize all files beneath the
 current directory with an FTP host efficiently.
 
