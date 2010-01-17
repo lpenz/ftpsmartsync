@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 """ A tool to synchronize the current directory remotly using FTP.
 
 For usage, run ``ftpsync.py --help``.
