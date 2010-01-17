@@ -26,7 +26,6 @@ import hashlib
 import re
 from tempfile import TemporaryFile
 import socket
-import string
 import random
 from optparse import OptionParser
 
