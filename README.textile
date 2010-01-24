@@ -4,14 +4,14 @@ ftpsync - synchronizes a directory with an FTP host efficiently.
 </P>
 <H1>SYNOPSIS</H1>
 <P>
-<B>ftpsync</B> -h
+**ftpsync** -h
 </P>
 <P>
-<B>ftpsync</B> [-q] [-s]
+**ftpsync** [-q] [-s]
 </P>
 <H1>DESCRIPTION</H1>
 <P>
-<B>ftpsync</B> is a program that synchronizes all files beneath the current
+**ftpsync** is a program that synchronizes all files beneath the current
 directory with an FTP host efficiently.
 </P>
 <P>
@@ -22,7 +22,7 @@ directory that must have the following line:
   ftp://user@host/path
 </PRE>
 <P>
-The password is found by looking at <I>~/.netrc</I>, see <B>netrc</B>(5).
+The password is found by looking at <I>~/.netrc</I>, see **netrc**(5).
 If netrc is unavailable, then gnome-keyring is used. For more information
 about gnome-keyring, please refer to <A HREF="http://wiki.github.com/xrogaan/ftpsync/">http://wiki.github.com/xrogaan/ftpsync/</A>.
 </P>
@@ -36,13 +36,13 @@ different files, as long as they are always sent by ftpsync.
 </P>
 <H1>OPTIONS</H1>
 <P>
-<B>-h</B> Help.
+**-h** Help.
 </P>
 <P>
-<B>-q</B> Quiet mode.
+**-q** Quiet mode.
 </P>
 <P>
-<B>-s</B> Safe mode: sends hashes.txt after every successful file transfer.
+**-s** Safe mode: sends hashes.txt after every successful file transfer.
 </P>
 <H1>AUTHORS</H1>
 <P>
@@ -53,6 +53,6 @@ gnome-keyring and fixes by <A HREF="http://github.com/xrogaan">Bellière Ludovic
 </P>
 <H1>SEE ALSO</H1>
 <P>
-<B>ftp</B>(1),
-<B>netrc</B>(5)
+**ftp**(1),
+**netrc**(5)
 </P>
