@@ -49,20 +49,6 @@ def uptime():
     return int(upt)
 
 
-# DEPRECATED this function shouldn't be called anymore
-def ftpUpstreamGet():
-    try:
-        fd = open('.ftp_upstream')
-    except IOError:
-        return False, '.ftp_upstream: file not found.', False
-    
-    r = re.compile('^upstream=ftp://([a-zA-Z0-9]+)@([a-zA-Z0-9.]+)/([a-zA-Z0-9./]+)$')
-    m = r.match(fd.read())
-    if not m:
-        return False, '.ftp_upstream: invalid syntax.', False
-    return m.group(1), m.group(2), m.group(3)
-
-
 class Printer(object):
     def __init__(self, enable):
         self.enable = enable
