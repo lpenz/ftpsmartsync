@@ -33,7 +33,7 @@ from urlparse import urlparse
 from getpass import getpass
 
 PROGRAM_NAME = "ftpsync"
-PROGRAM_VERSION = "1.0.1"
+PROGRAM_VERSION = "1.1"
 
 __version__ = PROGRAM_VERSION
 
