@@ -14,7 +14,7 @@ except IOError:
         import gtk
         import gnomekeyring
     except ImportError:
-        print "cannot open /home/%s/.netrc and gnomekeyring isn't available." % os.environ['USER']
+        print("cannot open /home/%s/.netrc and gnomekeyring isn't available." % os.environ['USER'])
         sys.exit(1)
     else:
         gtkpresence = True
@@ -55,7 +55,7 @@ class Printer(object):
     def msg(self, str):
         if not self.enable:
             return
-        print str
+        print(str)
 
 # Main Ftp class: ############################################################
 
@@ -82,7 +82,7 @@ class Ftp():
                         except Exception, msg:
                             sys.stderr.write("\nUnable to unlock your keychain: %s" % msg)
                         else:
-                            print "+ [%s] unlocked." % keyring
+                            print("+ [%s] unlocked." % keyring)
                             items = gnomekeyring.find_items_sync(gnomekeyring.ITEM_NETWORK_PASSWORD,
                                                                  {"server": self.host,
                                                                   "protocol": "ftp",
@@ -116,9 +116,9 @@ class Ftp():
     def sendHashes(self, localHashes):
         if not self.hashespending:
             return
-        print '+ Sending hashes'
+        print('+ Sending hashes')
         tmpfile = TemporaryFile()
-        for f in localHashes.keys():
+        for f in list(localHashes.keys()):
             tmpfile.write('%s %s\n' % (f, localHashes[f]))
         tmpfile.seek(0)
         self.ftp.storlines('STOR %s' % HASHFILENAME + '.tmp', tmpfile)
@@ -222,7 +222,7 @@ def doit(cfg):
     remote_path = os.path.normpath(o[2] or '/') # ensure the remote path contain at least a '/'
     if remote_path.startswith('//'):
         remote_path = remote_path[1:]
-    assert remote_path.startswith('/'),`remote_path`
+    assert remote_path.startswith('/'),repr(remote_path)
     
     p.msg('+ Upstream is %s' % o.geturl())
     # TODO support the port if given
