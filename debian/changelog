@@ -1,3 +1,11 @@
+ftpsync (1.1-1) unstable; urgency=low
+
+  * Creates remote ftp dir if it doesn't exist.
+  * .ftp_upstream file must have only the upstream FTP URL as content.
+    ATTENTION: this means all .ftp_upstream files have to be fixed.
+
+ -- Leandro Lisboa Penz <llpenz@gmail.com>  Sun, 31 Jan 2010 10:09:45 -0200
+
 ftpsync (1.0.1-1) unstable; urgency=low
 
   * Initial Release.
