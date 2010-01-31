@@ -228,7 +228,7 @@ def doit(cfg):
     if upstreamurl.endswith('\n'):
         upstreamurl = upstreamurl[:-1]
 
-    p.msg('+ Upstream is %s' % upstreamurl[:-1])
+    p.msg('+ Upstream is %s' % upstreamurl)
     # TODO support the port if given
     ftp = Ftp(o.username, o.hostname, remote_path)
     p.msg('+ Connected')
