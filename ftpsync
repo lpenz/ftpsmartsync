@@ -14,7 +14,7 @@ except IOError:
         import gtk
         import gnomekeyring
     except ImportError:
-        print "cannot open /home/%s/.netrc and gnomekeyring isn't available." % os.environ['USERNAME']
+        print("cannot open /home/%s/.netrc and gnomekeyring isn't available." % os.environ['USER'])
         sys.exit(1)
     else:
         gtkpresence = True
@@ -27,12 +27,13 @@ import hashlib
 import re
 from tempfile import TemporaryFile
 import socket
-import string
 import random
 from optparse import OptionParser
+from urlparse import urlparse
+from getpass import getpass
 
-PROGRAM_NAME="ftpsync"
-PROGRAM_VERSION="1.0.1"
+PROGRAM_NAME = "ftpsync"
+PROGRAM_VERSION = "1.1"
 
 __version__ = PROGRAM_VERSION
 
@@ -41,22 +42,11 @@ HASHFILENAME = 'hashes.txt'
 # Useful functions: ##########################################################
 
 def uptime():
-    fd = open('/proc/uptime')
-    upt = fd.read().split('.')[0]
+    '''Uptime used as a monotonic clock.'''
+    uptfile = open('/proc/uptime')
+    upt = uptfile.read().split('.')[0]
+    uptfile.close()
     return int(upt)
-
-
-
-def ftpUpstreamGet():
-    try:
-        fd = open('.ftp_upstream')
-    except IOError:
-        return False, '.ftp_upstream: file not found.', False
-    r = re.compile('^upstream=ftp://([a-zA-Z0-9]+)@([a-zA-Z0-9.]+)/([a-zA-Z0-9./]+)$')
-    m = r.match(fd.read())
-    if not m:
-        return False, '.ftp_upstream: invalid syntax.', False
-    return m.group(1), m.group(2), m.group(3)
 
 
 class Printer(object):
@@ -65,7 +55,7 @@ class Printer(object):
     def msg(self, str):
         if not self.enable:
             return
-        print str
+        print(str)
 
 # Main Ftp class: ############################################################
 
@@ -79,15 +69,28 @@ class Ftp():
 
     def connect(self):
         try:
-            auth = netrc().authenticators(self.host)
+            auth = netrc().authenticators(self.host) # TODO check if the host exists in netrc
         except IOError, msgio:
             if gtkpresence:
                 try:
-                    items = gnomekeyring.find_items_sync(gnomekeyring.ITEM_NETWORK_PASSWORD, {"server": self.host, "protocol": "ftp", "user": self.user})
-                    if len(items) > 0:
-                        ftp = ftplib.FTP(self.host, self.user, item[0].secret)
-                    else:
-                        raise Exception('gnomekeyring','NoMatchError')
+                    keyring = gnomekeyring.get_default_keyring_sync()
+                    keyring_info = gnomekeyring.get_info_sync(keyring)
+                    if keyring_info.get_is_locked():
+                        keyring_pass = getpass('Enter password to unlock your keychain [%s]: ' % (keyring))
+                        try:
+                            gnomekeyring.unlock_sync( keyring, keyring_pass )
+                        except Exception, msg:
+                            sys.stderr.write("\nUnable to unlock your keychain: %s" % msg)
+                        else:
+                            print("+ [%s] unlocked." % keyring)
+                            items = gnomekeyring.find_items_sync(gnomekeyring.ITEM_NETWORK_PASSWORD,
+                                                                 {"server": self.host,
+                                                                  "protocol": "ftp",
+                                                                  "user": self.user})
+                            if len(items) > 0:
+                                ftp = ftplib.FTP(self.host, self.user, items[0].secret)
+                            else:
+                                raise Exception('gnomekeyring','NoMatchError')
                 except gnomekeyring.DeniedError:
                     sys.stderr.write("\nGnome keyring error : Access denied ..\nnetrc error: %s\n" % (msgio))
                     sys.exit(1)
@@ -101,7 +104,11 @@ class Ftp():
         else:
             assert self.user == auth[0]
             ftp = ftplib.FTP(self.host, auth[0], auth[2])
-        ftp.cwd(self.path)
+        try:
+            ftp.cwd(self.path)
+        except ftplib.error_perm:
+            ftp.mkd(self.path)
+            ftp.cwd(self.path)
         #ftp.set_debuglevel(1)
         self.ftp = ftp
         self.dirs = set()
@@ -109,9 +116,9 @@ class Ftp():
     def sendHashes(self, localHashes):
         if not self.hashespending:
             return
-        print '+ Sending hashes'
+        print('+ Sending hashes')
         tmpfile = TemporaryFile()
-        for f in localHashes.keys():
+        for f in list(localHashes.keys()):
             tmpfile.write('%s %s\n' % (f, localHashes[f]))
         tmpfile.seek(0)
         self.ftp.storlines('STOR %s' % HASHFILENAME + '.tmp', tmpfile)
@@ -202,14 +209,28 @@ def doit(cfg):
 
     mainRV = 0
 
-    user, host, path = ftpUpstreamGet()
-    if not user:
-        sys.stderr.write('%s\n' % host)
-        return 1
+    try:
+        fd = open('.ftp_upstream')
+    except IOError:
+        sys.stderr.write('.ftp_upstream: file not found')
+        sys.exit(1)
 
-    p.msg('+ Upstream is %s@%s/%s' % (user, host, path))
+    o = urlparse(fd.read(),'ftp')
+    if not o.username:
+        sys.stderr.write('username not given: %s\n' % o.geturl())
+        sys.exit(1)
+    remote_path = os.path.normpath(o[2] or '/') # ensure the remote path contain at least a '/'
+    if remote_path.startswith('//'):
+        remote_path = remote_path[1:]
+    assert remote_path.startswith('/'),repr(remote_path)
 
-    ftp = Ftp(user, host, path)
+    upstreamurl = o.geturl()
+    if upstreamurl.endswith('\n'):
+        upstreamurl = upstreamurl[:-1]
+
+    p.msg('+ Upstream is %s' % upstreamurl[:-1])
+    # TODO support the port if given
+    ftp = Ftp(o.username, o.hostname, remote_path)
     p.msg('+ Connected')
 
     localFiles, localHashes = localFilesGet()
@@ -279,7 +300,6 @@ def main():
     parser = OptionParser(usage="Usage: %prog [-h] [-s]",
                           version="%prog "+__version__,
                           description='''\
-
 ftpsync is a program that synchronize all files beneath the
 current directory with an FTP host efficiently.
 
