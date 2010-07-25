@@ -250,6 +250,7 @@ def doit(cfg):
         p.msg('+ %4d/%-4d deleted %s' % (j, jtotal, f))
         remoteFiles.discard(f)
         del remoteHashes[f]
+        j = j + 1
 
     tosend = set()
     okHashes = {}
