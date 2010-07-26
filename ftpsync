@@ -241,7 +241,7 @@ def doit(cfg):
 
     p.msg('+ Deleting remote files')
     todel = remoteFiles.difference(localFiles)
-    j = 0
+    j = 1
     jtotal = len(todel)
     for f in todel:
         if f == HASHFILENAME:
