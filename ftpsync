@@ -60,11 +60,12 @@ class Printer(object):
 # Main Ftp class: ############################################################
 
 class Ftp():
-    def __init__(self, user, host, path):
+    def __init__(self, user, host, path, printer):
         self.user = user
         self.host = host
         self.path = path
         self.hashespending = False
+        self.p = printer
         self.connect()
 
     def connect(self):
@@ -82,7 +83,7 @@ class Ftp():
                         except Exception, msg:
                             sys.stderr.write("\nUnable to unlock your keychain: %s" % msg)
                         else:
-                            print("+ [%s] unlocked." % keyring)
+                            self.p.msg("+ [%s] unlocked." % keyring)
                             items = gnomekeyring.find_items_sync(gnomekeyring.ITEM_NETWORK_PASSWORD,
                                                                  {"server": self.host,
                                                                   "protocol": "ftp",
@@ -116,7 +117,7 @@ class Ftp():
     def sendHashes(self, localHashes):
         if not self.hashespending:
             return
-        print('+ Sending hashes')
+        self.p.msg('+ Sending hashes')
         tmpfile = TemporaryFile()
         for f in list(localHashes.keys()):
             tmpfile.write('%s %s\n' % (f, localHashes[f]))
@@ -230,7 +231,7 @@ def doit(cfg):
 
     p.msg('+ Upstream is %s' % upstreamurl)
     # TODO support the port if given
-    ftp = Ftp(o.username, o.hostname, remote_path)
+    ftp = Ftp(o.username, o.hostname, remote_path, p)
     p.msg('+ Connected')
 
     localFiles, localHashes = localFilesGet()
