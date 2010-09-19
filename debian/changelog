@@ -1,3 +1,9 @@
+ftpsync (1.1.1-1) unstable; urgency=low
+
+  * New upstream release: minor fixes in status messages.
+
+ -- Leandro Lisboa Penz <llpenz@gmail.com>  Sun, 19 Sep 2010 18:58:16 -0300
+
 ftpsync (1.1-1) unstable; urgency=low
 
   * Creates remote ftp dir if it doesn't exist.
