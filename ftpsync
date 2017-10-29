@@ -14,7 +14,8 @@ except IOError:
         import gtk
         import gnomekeyring
     except ImportError:
-        print("cannot open /home/%s/.netrc and gnomekeyring isn't available." % os.environ['USER'])
+        print("cannot open /home/%s/.netrc and gnomekeyring isn't available." %
+              os.environ['USER'])
         sys.exit(1)
     else:
         gtkpresence = True
@@ -39,6 +40,7 @@ __version__ = PROGRAM_VERSION
 
 HASHFILENAME = 'hashes.txt'
 
+
 # Useful functions: ##########################################################
 
 def uptime():
@@ -52,10 +54,12 @@ def uptime():
 class Printer(object):
     def __init__(self, enable):
         self.enable = enable
+
     def msg(self, str):
         if not self.enable:
             return
         print(str)
+
 
 # Main Ftp class: ############################################################
 
@@ -70,36 +74,41 @@ class Ftp():
 
     def connect(self):
         try:
-            auth = netrc().authenticators(self.host) # TODO check if the host exists in netrc
-        except IOError, msgio:
+            auth = netrc().authenticators(self.host)
+            # TODO check if the host exists in netrc
+        except IOError as msgio:
             if gtkpresence:
                 try:
                     keyring = gnomekeyring.get_default_keyring_sync()
                     keyring_info = gnomekeyring.get_info_sync(keyring)
                     if keyring_info.get_is_locked():
-                        keyring_pass = getpass('Enter password to unlock your keychain [%s]: ' % (keyring))
+                        keyring_pass = getpass('Enter password to unlock your '
+                                               'keychain [%s]: ' % (keyring))
                         try:
-                            gnomekeyring.unlock_sync( keyring, keyring_pass )
-                        except Exception, msg:
-                            sys.stderr.write("\nUnable to unlock your keychain: %s" % msg)
+                            gnomekeyring.unlock_sync(keyring, keyring_pass)
+                        except Exception as msg:
+                            sys.stderr.write("\nUnable to unlock your "
+                                             "keychain: %s" % msg)
                         else:
                             self.p.msg("+ [%s] unlocked." % keyring)
-                            items = gnomekeyring.find_items_sync(gnomekeyring.ITEM_NETWORK_PASSWORD,
+                            items = gnomekeyring.find_items_sync(gnomekeyring.
+                                                                 ITEM_NETWORK_PASSWORD,
                                                                  {"server": self.host,
                                                                   "protocol": "ftp",
                                                                   "user": self.user})
                             if len(items) > 0:
                                 ftp = ftplib.FTP(self.host, self.user, items[0].secret)
                             else:
-                                raise Exception('gnomekeyring','NoMatchError')
+                                raise Exception('gnomekeyring', 'NoMatchError')
                 except gnomekeyring.DeniedError:
                     sys.stderr.write("\nGnome keyring error : Access denied ..\nnetrc error: %s\n" % (msgio))
                     sys.exit(1)
                 except gnomekeyring.NoMatchError:
                     sys.stderr.write("\nGnome keyring error : No credential for %s..\nnetrc error: %s\n" % (self.host, msgio))
                     sys.exit(1)
-                except Exception, msg:
-                    sys.stderr.write("\nGnome keyring error : %s\nnetrc error: %s\n" % (msg, msgio))
+                except Exception as msg:
+                    sys.stderr.write("\nGnome keyring error : %s\nnetrc error: "
+                                     "%s\n" % (msg, msgio))
                     sys.exit(1)
 
         else:
@@ -110,7 +119,6 @@ class Ftp():
         except ftplib.error_perm:
             ftp.mkd(self.path)
             ftp.cwd(self.path)
-        #ftp.set_debuglevel(1)
         self.ftp = ftp
         self.dirs = set()
 
@@ -139,6 +147,7 @@ class Ftp():
     def filesGet(self):
         remoteFiles = set()
         remoteHashes = {}
+
         def remoteHashesGet(l):
             r = re.compile('^(.+) ([a-f0-9]+)$')
             m = r.match(l)
@@ -186,9 +195,7 @@ def filesget(filelist, entry):
     return filelist
 
 
-
 def localFilesGet():
-    localFiles = set()
     localHashes = {}
 
     filelist = filesget([], '././')
@@ -216,14 +223,15 @@ def doit(cfg):
         sys.stderr.write('.ftp_upstream: file not found')
         sys.exit(1)
 
-    o = urlparse(fd.read(),'ftp')
+    o = urlparse(fd.read(), 'ftp')
     if not o.username:
         sys.stderr.write('username not given: %s\n' % o.geturl())
         sys.exit(1)
-    remote_path = os.path.normpath(o[2] or '/') # ensure the remote path contain at least a '/'
+    # ensure the remote path contain at least a '/'
+    remote_path = os.path.normpath(o[2] or '/')
     if remote_path.startswith('//'):
         remote_path = remote_path[1:]
-    assert remote_path.startswith('/'),repr(remote_path)
+    assert remote_path.startswith('/'), repr(remote_path)
 
     upstreamurl = o.geturl()
     if upstreamurl.endswith('\n'):
@@ -257,7 +265,7 @@ def doit(cfg):
     okHashes = {}
 
     for f in localFiles:
-        if not f in remoteFiles or localHashes[f] != remoteHashes[f]:
+        if f not in remoteFiles or localHashes[f] != remoteHashes[f]:
             tosend.add(f)
         else:
             okHashes[f] = remoteHashes[f]
@@ -292,10 +300,11 @@ def doit(cfg):
 
     ftp.sendHashes(okHashes)
 
-    p.msg('+ Summary: sent %d files, deleted %d files, %d files could not be sent' % (len(sentHashes), len(todel), len(tosend) - len(sentHashes)))
+    p.msg('+ Summary: sent %d files, deleted %d files, '
+          '%d files could not be sent' %
+          (len(sentHashes), len(todel), len(tosend) - len(sentHashes)))
 
     return mainRV
-
 
 
 def main():
@@ -319,10 +328,11 @@ the files that are different. This makes ftpsync very efficient
 when synchronizing a directory with only a few different files,
 as long as they are always sent by ftpsync.
 '''
-                        )
+                          )
     parser.add_option("-s", "--safe", dest="safe",
                       action="store_true", default=False,
-                      help="Safe mode: sends hashes.txt after every successful file transfer.")
+                      help="Safe mode: sends hashes.txt after every "
+                           "successful file transfer.")
     parser.add_option("-q", "--quiet", dest="quiet",
                       action="store_true", default=False,
                       help="")
@@ -333,4 +343,3 @@ as long as they are always sent by ftpsync.
 
 if __name__ == '__main__':
     main()
-
