@@ -11,7 +11,6 @@ try:
     f = open("/home/%s/.netrc" % os.environ['USER'])
 except IOError:
     try:
-        import gtk
         import gnomekeyring
     except ImportError:
         print("cannot open /home/%s/.netrc and gnomekeyring isn't available." %
@@ -91,24 +90,31 @@ class Ftp():
                                              "keychain: %s" % msg)
                         else:
                             self.p.msg("+ [%s] unlocked." % keyring)
-                            items = gnomekeyring.find_items_sync(gnomekeyring.
-                                                                 ITEM_NETWORK_PASSWORD,
-                                                                 {"server": self.host,
-                                                                  "protocol": "ftp",
-                                                                  "user": self.user})
+                            itempass = gnomekeyring.ITEM_NETWORK_PASSWORD
+                            pars = {"server": self.host,
+                                    "protocol": "ftp",
+                                    "user": self.user}
+                            items = gnomekeyring.find_items_sync(itempass,
+                                                                 pars)
                             if len(items) > 0:
-                                ftp = ftplib.FTP(self.host, self.user, items[0].secret)
+                                ftp = ftplib.FTP(self.host,
+                                                 self.user,
+                                                 items[0].secret)
                             else:
                                 raise Exception('gnomekeyring', 'NoMatchError')
                 except gnomekeyring.DeniedError:
-                    sys.stderr.write("\nGnome keyring error : Access denied ..\nnetrc error: %s\n" % (msgio))
+                    sys.stderr.write("\nGnome keyring error : "
+                                     "Access denied ..\n"
+                                     "netrc error: %s\n" % (msgio))
                     sys.exit(1)
                 except gnomekeyring.NoMatchError:
-                    sys.stderr.write("\nGnome keyring error : No credential for %s..\nnetrc error: %s\n" % (self.host, msgio))
+                    sys.stderr.write("\nGnome keyring error : "
+                                     "No credential for %s..\n"
+                                     "netrc error: %s\n" % (self.host, msgio))
                     sys.exit(1)
                 except Exception as msg:
-                    sys.stderr.write("\nGnome keyring error : %s\nnetrc error: "
-                                     "%s\n" % (msg, msgio))
+                    sys.stderr.write("\nGnome keyring error : %s\n"
+                                     "netrc error: %s\n" % (msg, msgio))
                     sys.exit(1)
 
         else:
