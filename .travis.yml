@@ -1,13 +1,15 @@
 ---
+language: python
+python:
+  - 2.7
+  - 3.4
+  - 3.5
+  - 3.6
+  - nightly
+install: true
+script: python setup.py install
 jobs:
   include:
-    - env: [ ACTION=default, PYTHONPATH=_install/lib/python2.7/site-packages/ ]
-      language: python
-      install: true
-      script:
-        - mkdir -p "$PYTHONPATH"
-        - python setup.py install --prefix=_install
-        - git clean -xfd
     - env: [ ACTION=omnilint ]
       language: generic
       install: docker pull lpenz/omnilint
