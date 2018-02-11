@@ -1,0 +1,47 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""
+ftpsync is a program that synchronize all files beneath the
+current directory with an FTP host efficiently.
+
+The destination host is identified by a .ftp_upstream in the
+current directory that must have the following line:
+upstream=ftp://user@host/path
+
+The password is found by looking at ~/.netrc, see netrc(5).
+
+ftpsync sends all files in the current directory to the target host,
+and stores the MD5 of the sent files in a hashes.txt files in the
+remote host. When syncing again, it checks the MD5 of each file
+against the one stored in the remote hashes.txt file, and only sends
+the files that are different. This makes ftpsync very efficient
+when synchronizing a directory with only a few different files,
+as long as they are always sent by ftpsync.
+"""
+
+
+import sys
+from optparse import OptionParser
+
+
+import ftpsync
+
+
+def main():
+    parser = OptionParser(usage="Usage: %prog [-h] [-s]",
+                          version="%prog "+ftpsync.__version__,
+                          description=__doc__)
+    parser.add_option("-s", "--safe", dest="safe",
+                      action="store_true", default=False,
+                      help="Safe mode: sends hashes.txt after every "
+                           "successful file transfer.")
+    parser.add_option("-q", "--quiet", dest="quiet",
+                      action="store_true", default=False,
+                      help="")
+    (cfg, args) = parser.parse_args()
+
+    sys.exit(ftpsync.ftpsync(quiet=cfg.quiet, safe=cfg.safe))
+
+
+if __name__ == '__main__':
+    main()

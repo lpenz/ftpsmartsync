@@ -9,7 +9,7 @@ import re
 
 
 def version_get():
-    with open('ftpsync') as fd:
+    with open('ftpsync/__init__.py') as fd:
         for line in fd:
             m = re.match('^PROGRAM_VERSION = "(?P<version>[0-9.]+)"',
                          line)
@@ -25,7 +25,8 @@ setup(name="ftpsync",
       author_email="lpenz@lpenz.org",
       url="http://github.com/lpenz/ftpsync",
       data_files=[('man/man1', ['ftpsync.1'])],
-      scripts=["ftpsync"],
+      packages=['ftpsync'],
+      scripts=["bin/ftpsync"],
       long_description="""\
 ftpsync is a program that synchronizes all files beneath the current
 directory with an FTP host efficiently by keeping a remote file with

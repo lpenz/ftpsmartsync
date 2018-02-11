@@ -2,15 +2,20 @@
 language: python
 python:
   - 2.7
-  - 3.4
-  - 3.5
-  - 3.6
-  - nightly
-install: true
-script: python setup.py install
+  # - 3.4 fixes pending for python 3
+  # - 3.5
+  # - 3.6
+  # - nightly
+install:
+  - pip install -r requirements.txt
+  - pip install pytest pytest-cov
+script:
+  - pytest --cov
+  - python setup.py install
+after_success: bash <(curl -s https://codecov.io/bash)
 jobs:
   include:
-    - env: [ ACTION=omnilint ]
+    - env: [ omnilint ]
       language: generic
       install: docker pull lpenz/omnilint
       script: docker run --rm -v "$PWD:$PWD" -e "RWD=$PWD" -e "MY_UID=$UID" lpenz/omnilint

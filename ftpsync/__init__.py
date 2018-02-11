@@ -1,26 +1,20 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-""" A tool to synchronize the current directory remotly using FTP.
-
-For usage, run ``ftpsync.py --help``.
-"""
+"""A tool to synchronize the current directory remotly using FTP."""
 
 import sys
 import os
 try:
-    f = open("/home/%s/.netrc" % os.environ['USER'])
-except IOError:
-    try:
-        import gnomekeyring
-    except ImportError:
-        print("cannot open /home/%s/.netrc and gnomekeyring isn't available." %
-              os.environ['USER'])
-        sys.exit(1)
-    else:
-        gtkpresence = True
+    import gnomekeyring
+except ImportError:
+    gtkpresence = False
 else:
-    f.close()
+    gtkpresence = True
 
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
 from netrc import netrc
 import ftplib
 import hashlib
@@ -28,8 +22,6 @@ import re
 from tempfile import TemporaryFile
 import socket
 import random
-from optparse import OptionParser
-from urlparse import urlparse
 from getpass import getpass
 
 PROGRAM_NAME = "ftpsync"
@@ -63,9 +55,10 @@ class Printer(object):
 # Main Ftp class: ############################################################
 
 class Ftp():
-    def __init__(self, user, host, path, printer):
+    def __init__(self, user, host, port, path, printer):
         self.user = user
         self.host = host
+        self.port = port
         self.path = path
         self.hashespending = False
         self.p = printer
@@ -119,7 +112,9 @@ class Ftp():
 
         else:
             assert self.user == auth[0]
-            ftp = ftplib.FTP(self.host, auth[0], auth[2])
+            ftp = ftplib.FTP()
+            ftp.connect(self.host, self.port)
+            ftp.login(auth[0], auth[2])
         try:
             ftp.cwd(self.path)
         except ftplib.error_perm:
@@ -169,7 +164,7 @@ class Ftp():
 
     def fileSend(self, filename):
         self.mkdir(os.path.dirname(filename))
-        fd = open(filename)
+        fd = open(filename, 'rb')
         try:
             self.ftp.storbinary('STOR %s' % filename, fd)
             self.hashespending = True
@@ -208,9 +203,10 @@ def localFilesGet():
     filelist.sort()
 
     for f in filelist:
-        fd = open(f, 'r')
+        fd = open(f, 'rb')
         h = hashlib.sha1()
-        h.update(fd.read())
+        contents = fd.read()
+        h.update(contents)
         localHashes[f] = h.hexdigest()
 
     return set(filelist), localHashes
@@ -218,10 +214,10 @@ def localFilesGet():
 
 # Core function: #############################################################
 
-def doit(cfg):
-    p = Printer(not cfg.quiet)
+def ftpsync(quiet=True, safe=True):
+    p = Printer(not quiet)
 
-    mainRV = 0
+    ok = True
 
     try:
         fd = open('.ftp_upstream')
@@ -234,7 +230,7 @@ def doit(cfg):
         sys.stderr.write('username not given: %s\n' % o.geturl())
         sys.exit(1)
     # ensure the remote path contain at least a '/'
-    remote_path = os.path.normpath(o[2] or '/')
+    remote_path = os.path.normpath(o[2] or '/').strip()
     if remote_path.startswith('//'):
         remote_path = remote_path[1:]
     assert remote_path.startswith('/'), repr(remote_path)
@@ -244,8 +240,8 @@ def doit(cfg):
         upstreamurl = upstreamurl[:-1]
 
     p.msg('+ Upstream is %s' % upstreamurl)
-    # TODO support the port if given
-    ftp = Ftp(o.username, o.hostname, remote_path, p)
+    print(o.username, o.hostname, o.port, remote_path, p)
+    ftp = Ftp(o.username, o.hostname, o.port, remote_path, p)
     p.msg('+ Connected')
 
     localFiles, localHashes = localFilesGet()
@@ -297,9 +293,9 @@ def doit(cfg):
             okHashes[f] = localHashes[f]
         else:
             p.msg('- ERROR sending %s' % (f))
-            mainRV = 1
+            ok = False
             ftp.sendHashes(okHashes)
-        if cfg.safe or (len(okHashes) > lastlen and uptime() - lastupt > 30):
+        if safe or (len(okHashes) > lastlen and uptime() - lastupt > 30):
             ftp.sendHashes(okHashes)
             lastupt = uptime()
             lastlen = len(okHashes)
@@ -310,42 +306,4 @@ def doit(cfg):
           '%d files could not be sent' %
           (len(sentHashes), len(todel), len(tosend) - len(sentHashes)))
 
-    return mainRV
-
-
-def main():
-    parser = OptionParser(usage="Usage: %prog [-h] [-s]",
-                          version="%prog "+__version__,
-                          description='''\
-ftpsync is a program that synchronize all files beneath the
-current directory with an FTP host efficiently.
-
-The destination host is identified by a .ftp_upstream in the
-current directory that must have the following line:
-upstream=ftp://user@host/path
-
-The password is found by looking at ~/.netrc, see netrc(5).
-
-ftpsync sends all files in the current directory to the target host,
-and stores the MD5 of the sent files in a hashes.txt files in the
-remote host. When syncing again, it checks the MD5 of each file
-against the one stored in the remote hashes.txt file, and only sends
-the files that are different. This makes ftpsync very efficient
-when synchronizing a directory with only a few different files,
-as long as they are always sent by ftpsync.
-'''
-                          )
-    parser.add_option("-s", "--safe", dest="safe",
-                      action="store_true", default=False,
-                      help="Safe mode: sends hashes.txt after every "
-                           "successful file transfer.")
-    parser.add_option("-q", "--quiet", dest="quiet",
-                      action="store_true", default=False,
-                      help="")
-    (cfg, args) = parser.parse_args()
-
-    sys.exit(doit(cfg))
-
-
-if __name__ == '__main__':
-    main()
+    return ok

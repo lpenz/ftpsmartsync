@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/lpenz/ftpsync.png?branch=master)](https://travis-ci.org/lpenz/ftpsync)
+[![codecov](https://codecov.io/gh/lpenz/ftpsync/branch/master/graph/badge.svg)](https://codecov.io/gh/lpenz/ftpsync)
 [![PyPI version](https://badge.fury.io/py/ftpsync.svg)](https://badge.fury.io/py/ftpsync)
 
 
