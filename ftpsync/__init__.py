@@ -129,7 +129,10 @@ class Ftp():
         self.p.msg('+ Sending hashes')
         tmpfile = TemporaryFile()
         for f in list(localHashes.keys()):
-            tmpfile.write('%s %s\n' % (f, localHashes[f]))
+            tmpfile.write(f.encode('UTF-8'))
+            tmpfile.write(' '.encode('UTF-8'))
+            tmpfile.write(localHashes[f].encode('UTF-8'))
+            tmpfile.write('\n'.encode('UTF-8'))
         tmpfile.seek(0)
         self.ftp.storlines('STOR %s' % HASHFILENAME + '.tmp', tmpfile)
         self.ftp.rename(HASHFILENAME+'.tmp', HASHFILENAME)
