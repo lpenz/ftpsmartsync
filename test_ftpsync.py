@@ -5,6 +5,7 @@ import os
 import unittest
 import tempfile
 import shutil
+import ftplib
 
 import threading
 try:
@@ -47,6 +48,12 @@ class TestsFtpsyncBase(object):
                 self.secret, self.port)
         self.ftpd = threading.Thread(target=ftpd_threadfunction, args=args)
         self.ftpd.start()
+        for i in range(10):
+            try:
+                ftplib.FTP('127.0.0.1', self.user, self.secret)
+                break
+            except Exception:
+                pass
 
     def tearDown(self):
         self.ftpdQuitEv.set()
