@@ -31,8 +31,8 @@ __version__ = PROGRAM_VERSION
 
 HASHFILENAME = 'hashes.txt'
 
-
 # Useful functions: ##########################################################
+
 
 def uptime():
     '''Uptime used as a monotonic clock.'''
@@ -53,6 +53,7 @@ class Printer(object):
 
 
 # Main Ftp class: ############################################################
+
 
 class Ftp():
     def __init__(self, user, host, port, path, printer):
@@ -84,14 +85,15 @@ class Ftp():
                         else:
                             self.p.msg("+ [%s] unlocked." % keyring)
                             itempass = gnomekeyring.ITEM_NETWORK_PASSWORD
-                            pars = {"server": self.host,
-                                    "protocol": "ftp",
-                                    "user": self.user}
-                            items = gnomekeyring.find_items_sync(itempass,
-                                                                 pars)
+                            pars = {
+                                "server": self.host,
+                                "protocol": "ftp",
+                                "user": self.user
+                            }
+                            items = gnomekeyring.find_items_sync(
+                                itempass, pars)
                             if len(items) > 0:
-                                ftp = ftplib.FTP(self.host,
-                                                 self.user,
+                                ftp = ftplib.FTP(self.host, self.user,
                                                  items[0].secret)
                             else:
                                 raise Exception('gnomekeyring', 'NoMatchError')
@@ -135,7 +137,7 @@ class Ftp():
             tmpfile.write('\n'.encode('UTF-8'))
         tmpfile.seek(0)
         self.ftp.storlines('STOR %s' % HASHFILENAME + '.tmp', tmpfile)
-        self.ftp.rename(HASHFILENAME+'.tmp', HASHFILENAME)
+        self.ftp.rename(HASHFILENAME + '.tmp', HASHFILENAME)
         self.hashespending = False
 
     def mkdir(self, dir):
@@ -189,6 +191,7 @@ class Ftp():
 
 # Local files processing: ####################################################
 
+
 def filesget(filelist, entry):
     assert os.path.exists(entry)
     if os.path.isdir(entry):
@@ -216,6 +219,7 @@ def localFilesGet():
 
 
 # Core function: #############################################################
+
 
 def ftpsync(quiet=True, safe=True):
     p = Printer(not quiet)
@@ -305,7 +309,7 @@ def ftpsync(quiet=True, safe=True):
     ftp.sendHashes(okHashes)
 
     p.msg('+ Summary: sent %d files, deleted %d files, '
-          '%d files could not be sent' %
-          (len(sentHashes), len(todel), len(tosend) - len(sentHashes)))
+          '%d files could not be sent' % (len(sentHashes), len(todel),
+                                          len(tosend) - len(sentHashes)))
 
     return ok

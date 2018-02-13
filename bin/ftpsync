@@ -19,25 +19,32 @@ when synchronizing a directory with only a few different files,
 as long as they are always sent by ftpsync.
 """
 
-
 import sys
 from optparse import OptionParser
-
 
 import ftpsync
 
 
 def main():
-    parser = OptionParser(usage="Usage: %prog [-h] [-s]",
-                          version="%prog "+ftpsync.__version__,
-                          description=__doc__)
-    parser.add_option("-s", "--safe", dest="safe",
-                      action="store_true", default=False,
-                      help="Safe mode: sends hashes.txt after every "
-                           "successful file transfer.")
-    parser.add_option("-q", "--quiet", dest="quiet",
-                      action="store_true", default=False,
-                      help="")
+    parser = OptionParser(
+        usage="Usage: %prog [-h] [-s]",
+        version="%prog " + ftpsync.__version__,
+        description=__doc__)
+    parser.add_option(
+        "-s",
+        "--safe",
+        dest="safe",
+        action="store_true",
+        default=False,
+        help="Safe mode: sends hashes.txt after every "
+        "successful file transfer.")
+    parser.add_option(
+        "-q",
+        "--quiet",
+        dest="quiet",
+        action="store_true",
+        default=False,
+        help="")
     (cfg, args) = parser.parse_args()
 
     sys.exit(ftpsync.ftpsync(quiet=cfg.quiet, safe=cfg.safe))
