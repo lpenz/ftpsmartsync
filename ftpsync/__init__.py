@@ -243,7 +243,6 @@ def ftpsync(quiet=True, safe=True):
         upstreamurl = upstreamurl[:-1]
 
     p.msg('+ Upstream is %s' % upstreamurl)
-    print(o.username, o.hostname, o.port, remote_path, p)
     ftp = Ftp(o.username, o.hostname, o.port, remote_path, p)
     p.msg('+ Connected')
 
