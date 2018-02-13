@@ -79,7 +79,7 @@ class Ftp():
                             gnomekeyring.unlock_sync(keyring, keyring_pass)
                         except Exception as msg:
                             sys.stderr.write("\nUnable to unlock your "
-                                             "keychain: %s" % msg)
+                                             "keychain: %s\n" % msg)
                         else:
                             _log().debug("+ [%s] unlocked." % keyring)
                             itempass = gnomekeyring.ITEM_NETWORK_PASSWORD
@@ -225,7 +225,7 @@ def ftpsync(safe=True):
     try:
         fd = open('.ftp_upstream')
     except IOError:
-        sys.stderr.write('.ftp_upstream: file not found')
+        sys.stderr.write('.ftp_upstream: file not found\n')
         sys.exit(1)
 
     o = urlparse(fd.read(), 'ftp')
