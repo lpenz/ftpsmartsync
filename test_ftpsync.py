@@ -6,6 +6,7 @@ import unittest
 import tempfile
 import shutil
 import ftplib
+import hashlib
 
 import threading
 try:
@@ -34,6 +35,19 @@ def ftpd_threadfunction(quitEv, exc, tmpdir, user, secret, port):
         exc.put(e)
     else:
         exc.put(None)
+
+
+def dirInfo(top):
+    rv = {}
+    for root, dirs, files in os.walk(top):
+        for name in files:
+            fullname = os.path.join(root, name)
+            with open(fullname, 'rb') as fd:
+                relname = os.path.relpath(fullname, top)
+                h = hashlib.sha1()
+                h.update(fd.read())
+                rv[relname] = h.hexdigest()
+    return rv
 
 
 class TestsFtpsyncBase(object):
@@ -80,7 +94,12 @@ class TestsFtpsync(TestsFtpsyncBase, unittest.TestCase):
         TestsFtpsyncBase.tearDown(self)
 
     def test_ftpupstream(self):
-        ftpsync.ftpsync(quiet=False)
+        ftpsync.ftpsync(quiet=True)
+        self.maxDiff = None
+        local = dirInfo('.')
+        remote = dirInfo(self.ftpdDir)
+        del remote['hashes.txt']
+        self.assertEqual(local, remote)
 
 
 if __name__ == '__main__':
