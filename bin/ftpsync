@@ -20,9 +20,18 @@ as long as they are always sent by ftpsync.
 """
 
 import sys
+import logging
 from optparse import OptionParser
 
 import ftpsync
+
+
+def _logging_verbose(option, opt, value, parser):
+    logging.getLogger().setLevel(logging.INFO)
+
+
+def _logging_debug(option, opt, value, parser):
+    logging.getLogger().setLevel(logging.DEBUG)
 
 
 def main():
@@ -39,15 +48,20 @@ def main():
         help="Safe mode: sends hashes.txt after every "
         "successful file transfer.")
     parser.add_option(
-        "-q",
-        "--quiet",
-        dest="quiet",
-        action="store_true",
-        default=False,
-        help="")
+        '-v',
+        '--verbose',
+        action="callback",
+        callback=_logging_verbose,
+        help='Be more verbose')
+    parser.add_option(
+        '-d',
+        '--debug',
+        action="callback",
+        callback=_logging_debug,
+        help='Show debug messages')
     (cfg, args) = parser.parse_args()
 
-    sys.exit(ftpsync.ftpsync(quiet=cfg.quiet, safe=cfg.safe))
+    ftpsync.ftpsync(safe=cfg.safe)
 
 
 if __name__ == '__main__':

@@ -6,6 +6,7 @@ import sys
 import os
 try:
     import gnomekeyring
+    from getpass import getpass
 except ImportError:
     gtkpresence = False
 else:
@@ -22,7 +23,7 @@ import re
 from tempfile import TemporaryFile
 import socket
 import random
-from getpass import getpass
+import logging
 
 PROGRAM_NAME = "ftpsync"
 PROGRAM_VERSION = "1.1.2"
@@ -42,27 +43,24 @@ def uptime():
     return int(upt)
 
 
-class Printer(object):
-    def __init__(self, enable):
-        self.enable = enable
+def _log():
+    if not _log.logger:
+        _log.logger = logging.getLogger(__name__)
+    return _log.logger
 
-    def msg(self, str):
-        if not self.enable:
-            return
-        print(str)
 
+_log.logger = None
 
 # Main Ftp class: ############################################################
 
 
 class Ftp():
-    def __init__(self, user, host, port, path, printer):
+    def __init__(self, user, host, port, path):
         self.user = user
         self.host = host
         self.port = port
         self.path = path
         self.hashespending = False
-        self.p = printer
         self.connect()
 
     def connect(self):
@@ -83,7 +81,7 @@ class Ftp():
                             sys.stderr.write("\nUnable to unlock your "
                                              "keychain: %s" % msg)
                         else:
-                            self.p.msg("+ [%s] unlocked." % keyring)
+                            _log().debug("+ [%s] unlocked." % keyring)
                             itempass = gnomekeyring.ITEM_NETWORK_PASSWORD
                             pars = {
                                 "server": self.host,
@@ -128,7 +126,7 @@ class Ftp():
     def sendHashes(self, localHashes):
         if not self.hashespending:
             return
-        self.p.msg('+ Sending hashes')
+        _log().debug('+ Sending hashes')
         tmpfile = TemporaryFile()
         for f in list(localHashes.keys()):
             tmpfile.write(f.encode('UTF-8'))
@@ -221,9 +219,7 @@ def localFilesGet():
 # Core function: #############################################################
 
 
-def ftpsync(quiet=True, safe=True):
-    p = Printer(not quiet)
-
+def ftpsync(safe=True):
     ok = True
 
     try:
@@ -246,17 +242,17 @@ def ftpsync(quiet=True, safe=True):
     if upstreamurl.endswith('\n'):
         upstreamurl = upstreamurl[:-1]
 
-    p.msg('+ Upstream is %s' % upstreamurl)
-    ftp = Ftp(o.username, o.hostname, o.port, remote_path, p)
-    p.msg('+ Connected')
+    _log().debug('+ Upstream is %s' % upstreamurl)
+    ftp = Ftp(o.username, o.hostname, o.port, remote_path)
+    _log().debug('+ Connected')
 
     localFiles, localHashes = localFilesGet()
-    p.msg('+ Got %d local hashes' % len(localFiles))
+    _log().debug('+ Got %d local hashes' % len(localFiles))
 
     remoteFiles, remoteHashes = ftp.filesGet()
-    p.msg('+ Got %d remote hashes' % len(remoteFiles))
+    _log().debug('+ Got %d remote hashes' % len(remoteFiles))
 
-    p.msg('+ Deleting remote files')
+    _log().debug('+ Deleting remote files')
     todel = remoteFiles.difference(localFiles)
     j = 1
     jtotal = len(todel)
@@ -264,7 +260,7 @@ def ftpsync(quiet=True, safe=True):
         if f == HASHFILENAME:
             continue
         ftp.delete(f)
-        p.msg('+ %4d/%-4d deleted %s' % (j, jtotal, f))
+        _log().debug('+ %4d/%-4d deleted %s' % (j, jtotal, f))
         remoteFiles.discard(f)
         del remoteHashes[f]
         j = j + 1
@@ -280,7 +276,7 @@ def ftpsync(quiet=True, safe=True):
 
     ftp.sendHashes(okHashes)
 
-    p.msg('+ Sending files')
+    _log().debug('+ Sending files')
     sentHashes = {}
     i = 0
     itotal = len(tosend)
@@ -291,14 +287,14 @@ def ftpsync(quiet=True, safe=True):
     for f in tosendList:
         i = i + 1
         if f == 'hashes.txt':
-            p.msg('+ %4d/%-4d skipping %s' % (i, itotal, f))
+            _log().debug('+ %4d/%-4d skipping %s' % (i, itotal, f))
             continue
-        p.msg('+ %4d/%-4d sending %s' % (i, itotal, f))
+        _log().debug('+ %4d/%-4d sending %s' % (i, itotal, f))
         if ftp.fileSend(f):
             sentHashes[f] = localHashes[f]
             okHashes[f] = localHashes[f]
         else:
-            p.msg('- ERROR sending %s' % (f))
+            _log().error('- ERROR sending %s' % (f))
             ok = False
             ftp.sendHashes(okHashes)
         if safe or (len(okHashes) > lastlen and uptime() - lastupt > 30):
@@ -308,8 +304,8 @@ def ftpsync(quiet=True, safe=True):
 
     ftp.sendHashes(okHashes)
 
-    p.msg('+ Summary: sent %d files, deleted %d files, '
-          '%d files could not be sent' % (len(sentHashes), len(todel),
-                                          len(tosend) - len(sentHashes)))
+    _log().info('+ Summary: sent %d files, deleted %d files, '
+                '%d files could not be sent' % (len(sentHashes), len(todel),
+                                                len(tosend) - len(sentHashes)))
 
     return ok

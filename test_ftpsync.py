@@ -94,7 +94,7 @@ class TestsFtpsync(TestsFtpsyncBase, unittest.TestCase):
         TestsFtpsyncBase.tearDown(self)
 
     def test_ftpupstream(self):
-        ftpsync.ftpsync(quiet=True)
+        ftpsync.ftpsync()
         self.maxDiff = None
         local = dirInfo('.')
         remote = dirInfo(self.ftpdDir)
