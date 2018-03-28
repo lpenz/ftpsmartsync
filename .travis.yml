@@ -1,12 +1,25 @@
 ---
 sudo: required # docker
-services: [docker]
+services:
+  - docker
 language: generic
 script:
   - docker pull debian:stretch
   - docker run -d --name debian -v "$PWD/..":/home debian:stretch sleep 9999999999
-  - docker exec -t debian /bin/bash -c "apt-get update && apt-get install -y --no-install-recommends git-buildpackage fakeroot gcc build-essential debhelper txt2tags"
+  - docker exec -t debian /bin/bash -c "apt-get update && apt-get install -y --no-install-recommends git-buildpackage fakeroot build-essential debhelper"
   - docker exec -t debian /bin/bash -c "cd /home/ftpsync && gbp buildpackage --git-ignore-branch -us -uc"
   - docker rm -f debian
   - sudo chown -R "$USER:$USER" ../
   - ls -l ..
+deploy:
+  provider: packagecloud
+  repository: lpenz
+  username: lpenz
+  token:
+    secure: UxKCjzNe4zNwtzIcwzwaXSpuI+HUCxsEW+SF5jyG/LzSTi4BZzNZ4/NN33xb/gs3enCFk7iHyR0nejxNHHYxc/JrUCHkj5vA12GCU2OzGuJNC3/jcUnMRAzRYj3MWaLFT9vhU0PjMQt7Y3mMan0l8wLsWFfijO08JpnU+dyy/nI=
+  dist: debian/stretch
+  local-dir: '..'
+  package_glob: '*.deb'
+  on:
+    branch: debian-debian
+    tags: true
