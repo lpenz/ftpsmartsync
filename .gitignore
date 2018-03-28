@@ -1,0 +1,5 @@
+debian/files
+debian/ftpsync.debhelper.log
+debian/ftpsync.substvars
+debian/ftpsync/
+ftpsync.1
