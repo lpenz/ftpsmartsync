@@ -26,7 +26,7 @@ import random
 import logging
 
 PROGRAM_NAME = "ftpsync"
-PROGRAM_VERSION = "1.2.0"
+PROGRAM_VERSION = "1.2.1"
 
 __version__ = PROGRAM_VERSION
 
