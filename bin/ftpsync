@@ -1,0 +1,71 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+"""
+ftpsync is a program that synchronize all files beneath the
+current directory with an FTP host efficiently.
+
+The destination host is identified by a .ftp_upstream in the
+current directory that must have the following line:
+upstream=ftp://user@host/path
+
+The password is found by looking at ~/.netrc, see netrc(5).
+
+ftpsync sends all files in the current directory to the target host,
+and stores the MD5 of the sent files in a hashes.txt files in the
+remote host. When syncing again, it checks the MD5 of each file
+against the one stored in the remote hashes.txt file, and only sends
+the files that are different. This makes ftpsync very efficient
+when synchronizing a directory with only a few different files,
+as long as they are always sent by ftpsync.
+"""
+
+import logging
+import argparse
+
+import ftpsync
+
+
+class LoggingAction(argparse.Action):
+    def __init__(self, nargs=None, **kwargs):
+        if nargs is not None:
+            raise ValueError("nargs not allowed")
+        super(LoggingAction, self).__init__(nargs=0, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        raise NotImplementedError
+
+
+class LoggingVerbose(LoggingAction):
+    def __call__(self, parser, namespace, values, option_string=None):
+        logging.getLogger().setLevel(logging.INFO)
+
+
+class LoggingDebug(LoggingAction):
+    def __call__(self, parser, namespace, values, option_string=None):
+        logging.getLogger().setLevel(logging.DEBUG)
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        '--version',
+        action='version',
+        version='%(prog)s ' + ftpsync.__version__)
+    parser.add_argument(
+        "-s",
+        "--safe",
+        action="store_true",
+        default=False,
+        help="Safe mode: sends hashes.txt after every "
+        "successful file transfer.")
+    parser.add_argument(
+        '-v', '--verbose', action=LoggingVerbose, help='Be more verbose')
+    parser.add_argument(
+        '-d', '--debug', action=LoggingDebug, help='Show debug messages')
+    args = parser.parse_args()
+
+    ftpsync.ftpsync(safe=args.safe)
+
+
+if __name__ == '__main__':
+    main()
