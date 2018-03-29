@@ -10,7 +10,7 @@ Homepage: http://github.com/lpenz/ftpsync
 X-Python-Version: >= 2.7
 X-Python3-Version: >= 3.4
 
-Package: ftpsync
+Package: python-ftpsync
 Architecture: all
 Depends: python, ${python:Depends}, ${misc:Depends}
 Description: Efficient FTP synchronization
