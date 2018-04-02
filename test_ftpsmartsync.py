@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''Tests for ftpsync'''
+'''Tests for ftpsmartsync'''
 
 import os
 import unittest
@@ -18,7 +18,7 @@ from pyftpdlib.authorizers import DummyAuthorizer
 from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
 
-import ftpsync
+import ftpsmartsync
 
 
 def ftpd_threadfunction(quitEv, exc, tmpdir, user, secret, port):
@@ -50,7 +50,7 @@ def dirInfo(top):
     return rv
 
 
-class TestsFtpsyncBase(object):
+class TestsFtpsmartsyncBase(object):
     def setUp(self):
         self.ftpdQuitEv = threading.Event()
         self.ftpdExc = queue.Queue()
@@ -77,9 +77,9 @@ class TestsFtpsyncBase(object):
             raise exc
 
 
-class TestsFtpsync(TestsFtpsyncBase, unittest.TestCase):
+class TestsFtpsmartsync(TestsFtpsmartsyncBase, unittest.TestCase):
     def setUp(self):
-        TestsFtpsyncBase.setUp(self)
+        TestsFtpsmartsyncBase.setUp(self)
         with open('.ftp_upstream', 'w') as fd:
             fd.write('ftp://{}@127.0.0.1:{}/\n'.format(self.user, self.port))
         with open(os.path.expanduser('~/.netrc'), 'w') as fd:
@@ -91,10 +91,10 @@ class TestsFtpsync(TestsFtpsyncBase, unittest.TestCase):
     def tearDown(self):
         os.unlink('.ftp_upstream')
         os.unlink(os.path.expanduser('~/.netrc'))
-        TestsFtpsyncBase.tearDown(self)
+        TestsFtpsmartsyncBase.tearDown(self)
 
     def test_ftpupstream(self):
-        ftpsync.ftpsync()
+        ftpsmartsync.ftpsmartsync()
         self.maxDiff = None
         local = dirInfo('.')
         remote = dirInfo(self.ftpdDir)
