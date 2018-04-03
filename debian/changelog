@@ -1,3 +1,9 @@
+ftpsmartsync (1.3.0-1) UNRELEASED; urgency=medium
+
+  * Rename whole package to ftpsmartsync
+
+ -- Leandro Lisboa Penz <lpenz@lpenz.org>  Tue, 03 Apr 2018 01:06:01 +0100
+
 ftpsync (1.2.2-2) UNRELEASED; urgency=medium
 
   * Rename binary package to python-ftpsync

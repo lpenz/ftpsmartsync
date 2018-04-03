@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: ftpsync
-Source: http://github.com/lpenz/ftpsync
+Upstream-Name: ftpsmartsync
+Source: http://github.com/lpenz/ftpsmartsync
 
 Files: *
 Copyright: 2009 Leandro Lisboa Penz <lpenz@lpenz.org>

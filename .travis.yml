@@ -7,7 +7,7 @@ script:
   - docker pull debian:stretch
   - docker run -d --name debian -v "$PWD/..":/home debian:stretch sleep 9999999999
   - docker exec -t debian /bin/bash -c "apt-get update && apt-get install -y --no-install-recommends git-buildpackage fakeroot build-essential debhelper"
-  - docker exec -t debian /bin/bash -c "cd /home/ftpsync && gbp buildpackage --git-ignore-branch -us -uc"
+  - docker exec -t debian /bin/bash -c "cd /home/ftpsmartsync && gbp buildpackage --git-ignore-branch -us -uc"
   - docker rm -f debian
   - sudo chown -R "$USER:$USER" ../
   - ls -l ..

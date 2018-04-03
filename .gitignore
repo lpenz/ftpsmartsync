@@ -1,5 +1,5 @@
 debian/files
-debian/ftpsync.debhelper.log
-debian/ftpsync.substvars
-debian/ftpsync/
-ftpsync.1
+debian/ftpsmartsync.debhelper.log
+debian/ftpsmartsync.substvars
+debian/ftpsmartsync/
+ftpsmartsync.1
