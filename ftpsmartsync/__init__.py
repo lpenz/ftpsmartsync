@@ -25,8 +25,8 @@ import socket
 import random
 import logging
 
-PROGRAM_NAME = "ftpsync"
-PROGRAM_VERSION = "1.2.2"
+PROGRAM_NAME = "ftpsmartsync"
+PROGRAM_VERSION = "1.3.0"
 
 __version__ = PROGRAM_VERSION
 
@@ -219,7 +219,7 @@ def localFilesGet():
 # Core function: #############################################################
 
 
-def ftpsync(safe=True):
+def ftpsmartsync(safe=True):
     ok = True
 
     try:

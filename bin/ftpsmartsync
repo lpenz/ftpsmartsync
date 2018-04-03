@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
-ftpsync is a program that synchronize all files beneath the
+ftpsmartsync is a program that synchronize all files beneath the
 current directory with an FTP host efficiently.
 
 The destination host is identified by a .ftp_upstream in the
@@ -10,19 +10,19 @@ upstream=ftp://user@host/path
 
 The password is found by looking at ~/.netrc, see netrc(5).
 
-ftpsync sends all files in the current directory to the target host,
+ftpsmartsync sends all files in the current directory to the target host,
 and stores the MD5 of the sent files in a hashes.txt files in the
 remote host. When syncing again, it checks the MD5 of each file
 against the one stored in the remote hashes.txt file, and only sends
-the files that are different. This makes ftpsync very efficient
+the files that are different. This makes ftpsmartsync very efficient
 when synchronizing a directory with only a few different files,
-as long as they are always sent by ftpsync.
+as long as they are always sent by ftpsmartsync.
 """
 
 import logging
 import argparse
 
-import ftpsync
+import ftpsmartsync
 
 
 class LoggingAction(argparse.Action):
@@ -50,7 +50,7 @@ def main():
     parser.add_argument(
         '--version',
         action='version',
-        version='%(prog)s ' + ftpsync.__version__)
+        version='%(prog)s ' + ftpsmartsync.__version__)
     parser.add_argument(
         "-s",
         "--safe",
@@ -64,7 +64,7 @@ def main():
         '-d', '--debug', action=LoggingDebug, help='Show debug messages')
     args = parser.parse_args()
 
-    ftpsync.ftpsync(safe=args.safe)
+    ftpsmartsync.ftpsmartsync(safe=args.safe)
 
 
 if __name__ == '__main__':

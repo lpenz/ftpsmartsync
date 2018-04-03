@@ -9,7 +9,7 @@ import re
 
 
 def version_get():
-    with open('ftpsync/__init__.py') as fd:
+    with open('ftpsmartsync/__init__.py') as fd:
         for line in fd:
             m = re.match('^PROGRAM_VERSION = "(?P<version>[0-9.]+)"',
                          line)
@@ -17,18 +17,18 @@ def version_get():
                 return m.group('version')
 
 
-setup(name="ftpsync",
+setup(name="ftpsmartsync",
       version=version_get(),
       description="Sync local path with FTP remote efficiently "
       "by transmitting only what is necessary",
       author="Leandro Lisboa Penz",
       author_email="lpenz@lpenz.org",
-      url="http://github.com/lpenz/ftpsync",
-      data_files=[('share/man/man1', ['ftpsync.1'])],
-      packages=['ftpsync'],
-      scripts=["bin/ftpsync"],
+      url="http://github.com/lpenz/ftpsmartsync",
+      data_files=[('share/man/man1', ['ftpsmartsync.1'])],
+      packages=['ftpsmartsync'],
+      scripts=["bin/ftpsmartsync"],
       long_description="""\
-ftpsync is a program that synchronizes all files beneath the current
+ftpsmartsync is a program that synchronizes all files beneath the current
 directory with an FTP host efficiently by keeping a remote file with
 the hashes of the files sent.
 """,
