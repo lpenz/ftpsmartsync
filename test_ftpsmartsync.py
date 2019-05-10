@@ -3,7 +3,6 @@
 # Copyright (C) 2009 Leandro Lisboa Penz <lpenz@lpenz.org>
 # This file is subject to the terms and conditions defined in
 # file 'LICENSE.txt', which is part of this source code package.
-
 '''Tests for ftpsmartsync'''
 
 import os
@@ -12,6 +11,7 @@ import tempfile
 import shutil
 import ftplib
 import hashlib
+import logging
 
 import threading
 try:
@@ -24,6 +24,8 @@ from pyftpdlib.handlers import FTPHandler
 from pyftpdlib.servers import FTPServer
 
 import ftpsmartsync
+
+logging.getLogger().setLevel(logging.DEBUG)
 
 
 def ftpd_threadfunction(quitEv, exc, tmpdir, user, secret, port):
@@ -99,11 +101,11 @@ class TestsFtpsmartsync(TestsFtpsmartsyncBase, unittest.TestCase):
         TestsFtpsmartsyncBase.tearDown(self)
 
     def test_ftpupstream(self):
+        local = dirInfo('.')
         ftpsmartsync.ftpsmartsync()
         self.maxDiff = None
-        local = dirInfo('.')
         remote = dirInfo(self.ftpdDir)
-        del remote['hashes.txt']
+        remote.pop('hashes.txt', None)
         self.assertEqual(local, remote)
 
 
