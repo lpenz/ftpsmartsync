@@ -16,7 +16,7 @@ import hashlib
 import threading
 try:
     import Queue as queue
-except:
+except ImportError:
     import queue
 
 from pyftpdlib.authorizers import DummyAuthorizer
