@@ -1,6 +1,4 @@
-[![Build Status](https://travis-ci.org/lpenz/ftpsmartsync.png?branch=master)](https://travis-ci.org/lpenz/ftpsmartsync)
-[![codecov](https://codecov.io/gh/lpenz/ftpsmartsync/branch/master/graph/badge.svg)](https://codecov.io/gh/lpenz/ftpsmartsync)
-[![PyPI version](https://badge.fury.io/py/ftpsmartsync.svg)](https://badge.fury.io/py/ftpsmartsync)
+[![CI](https://github.com/lpenz/ftpsmartsync/actions/workflows/ci.yml/badge.svg)](https://github.com/lpenz/ftpsmartsync/actions/workflows/ci.yml)
 
 
 # ftpsmartsync
