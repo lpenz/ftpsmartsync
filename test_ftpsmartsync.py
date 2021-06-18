@@ -3,7 +3,7 @@
 # Copyright (C) 2009 Leandro Lisboa Penz <lpenz@lpenz.org>
 # This file is subject to the terms and conditions defined in
 # file 'LICENSE', which is part of this source code package.
-'''Tests for ftpsmartsync'''
+"""Tests for ftpsmartsync"""
 
 import os
 import unittest
@@ -14,6 +14,7 @@ import hashlib
 import logging
 
 import threading
+
 try:
     import Queue as queue
 except ImportError:
@@ -49,7 +50,7 @@ def dirInfo(top):
     for root, dirs, files in os.walk(top):
         for name in files:
             fullname = os.path.join(root, name)
-            with open(fullname, 'rb') as fd:
+            with open(fullname, "rb") as fd:
                 relname = os.path.relpath(fullname, top)
                 h = hashlib.sha1()
                 h.update(fd.read())
@@ -62,16 +63,22 @@ class TestsFtpsmartsyncBase(object):
         self.ftpdQuitEv = threading.Event()
         self.ftpdExc = queue.Queue()
         self.ftpdDir = tempfile.mkdtemp()
-        self.user = 'user'
-        self.secret = 'secret'
+        self.user = "user"
+        self.secret = "secret"
         self.port = 2121
-        args = (self.ftpdQuitEv, self.ftpdExc, self.ftpdDir, self.user,
-                self.secret, self.port)
+        args = (
+            self.ftpdQuitEv,
+            self.ftpdExc,
+            self.ftpdDir,
+            self.user,
+            self.secret,
+            self.port,
+        )
         self.ftpd = threading.Thread(target=ftpd_threadfunction, args=args)
         self.ftpd.start()
         for i in range(10):
             try:
-                ftplib.FTP('127.0.0.1', self.user, self.secret)
+                ftplib.FTP("127.0.0.1", self.user, self.secret)
                 break
             except Exception:
                 pass
@@ -87,27 +94,27 @@ class TestsFtpsmartsyncBase(object):
 class TestsFtpsmartsync(TestsFtpsmartsyncBase, unittest.TestCase):
     def setUp(self):
         TestsFtpsmartsyncBase.setUp(self)
-        with open('.ftp_upstream', 'w') as fd:
-            fd.write('ftp://{}@127.0.0.1:{}/\n'.format(self.user, self.port))
-        with open(os.path.expanduser('~/.netrc'), 'w') as fd:
+        with open(".ftp_upstream", "w") as fd:
+            fd.write("ftp://{}@127.0.0.1:{}/\n".format(self.user, self.port))
+        with open(os.path.expanduser("~/.netrc"), "w") as fd:
             os.fchmod(fd.fileno(), 0o600)
-            fd.write('machine 127.0.0.1\n')
-            fd.write('login {}\n'.format(self.user))
-            fd.write('password {}\n'.format(self.secret))
+            fd.write("machine 127.0.0.1\n")
+            fd.write("login {}\n".format(self.user))
+            fd.write("password {}\n".format(self.secret))
 
     def tearDown(self):
-        os.unlink('.ftp_upstream')
-        os.unlink(os.path.expanduser('~/.netrc'))
+        os.unlink(".ftp_upstream")
+        os.unlink(os.path.expanduser("~/.netrc"))
         TestsFtpsmartsyncBase.tearDown(self)
 
     def test_ftpupstream(self):
-        local = dirInfo('.')
+        local = dirInfo(".")
         ftpsmartsync.ftpsmartsync()
         self.maxDiff = None
         remote = dirInfo(self.ftpdDir)
-        remote.pop('hashes.txt', None)
+        remote.pop("hashes.txt", None)
         self.assertEqual(local, remote)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
