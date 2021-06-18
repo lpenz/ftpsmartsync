@@ -3,11 +3,7 @@
 [![PyPI version](https://badge.fury.io/py/ftpsmartsync.svg)](https://badge.fury.io/py/ftpsmartsync)
 
 
-ftpsmartsync
-=======
-
-
-# About
+# ftpsmartsync
 
 ftpsmartsync is a program that synchronizes all files beneath the current
 directory with an FTP host efficiently.
@@ -31,7 +27,7 @@ directory with only a few different files, as long as they are always
 sent by ftpsmartsync.
 
 
-# Options
+## Options
 
 **-h** Help.
 
@@ -40,7 +36,7 @@ sent by ftpsmartsync.
 **-s** Safe mode: sends hashes.txt after every successful file transfer.
 
 
-# Authors
+## Authors
 
 Originaly written by [Leandro Penz](http://lpenz.github.com)
 
