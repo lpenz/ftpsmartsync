@@ -1,6 +1,6 @@
 # Copyright (C) 2009 Leandro Lisboa Penz <lpenz@lpenz.org>
 # This file is subject to the terms and conditions defined in
-# file 'LICENSE.txt', which is part of this source code package.
+# file 'LICENSE', which is part of this source code package.
 
 """A tool to synchronize the current directory remotly using FTP."""
 
