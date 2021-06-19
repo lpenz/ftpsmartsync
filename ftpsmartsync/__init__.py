@@ -175,9 +175,9 @@ class Ftp:
 
         return remoteFiles, remoteHashes
 
-    def fileSend(self, filename):
+    def fileSend(self, path, filename):
         self.mkdir(os.path.dirname(filename))
-        fd = open(filename, "rb")
+        fd = open(os.path.join(path, filename), "rb")
         try:
             self.ftp.storbinary("STOR %s" % filename, fd)
             self.hashespending = True
@@ -200,40 +200,32 @@ class Ftp:
 # Local files processing: ####################################################
 
 
-def filesget(filelist, entry):
-    assert os.path.exists(entry)
-    if os.path.isdir(entry):
-        for e in os.listdir(entry):
-            filesget(filelist, os.path.join(entry, e))
-    else:
-        filelist.append(os.path.normpath(entry))
-    return filelist
-
-
-def localFilesGet():
-    localHashes = {}
-
-    filelist = filesget([], "././")
-    filelist.sort()
-
-    for f in filelist:
-        fd = open(f, "rb")
-        h = hashlib.sha1()
-        contents = fd.read()
-        h.update(contents)
-        localHashes[f] = h.hexdigest()
-
-    return set(filelist), localHashes
+def localFilesGet(path="."):
+    hashes = {}
+    filelist = set()
+    for root, dirs, files in os.walk(path):
+        for basename in files:
+            filename = os.path.relpath(os.path.join(root, basename), path)
+            try:
+                with open(os.path.join(root, basename), "rb") as fd:
+                    h = hashlib.sha1()
+                    contents = fd.read()
+                    h.update(contents)
+                    hashes[filename] = h.hexdigest()
+                filelist.add(filename)
+            except PermissionError as e:
+                _log().warning("Permission error reading %s: %s", filename, e)
+    return filelist, hashes
 
 
 # Core function: #############################################################
 
 
-def ftpsmartsync(safe=True):
+def ftpsmartsync(path=".", safe=True):
     ok = True
 
     try:
-        fd = open(".ftp_upstream")
+        fd = open(os.path.join(path, ".ftp_upstream"))
     except IOError:
         sys.stderr.write(".ftp_upstream: file not found\n")
         sys.exit(1)
@@ -256,8 +248,8 @@ def ftpsmartsync(safe=True):
     ftp = Ftp(o.username, o.hostname, o.port, remote_path)
     _log().debug("+ Connected")
 
-    localFiles, localHashes = localFilesGet()
-    _log().debug("+ Got %d local hashes" % len(localFiles))
+    localFiles, localHashes = localFilesGet(path)
+    _log().debug("+ Got %d local hashes from %s" % (len(localFiles), path))
 
     remoteFiles, remoteHashes = ftp.filesGet()
     _log().debug("+ Got %d remote hashes" % len(remoteFiles))
@@ -300,7 +292,7 @@ def ftpsmartsync(safe=True):
             _log().debug("+ %4d/%-4d skipping %s" % (i, itotal, f))
             continue
         _log().debug("+ %4d/%-4d sending %s" % (i, itotal, f))
-        if ftp.fileSend(f):
+        if ftp.fileSend(path, f):
             sentHashes[f] = localHashes[f]
             okHashes[f] = localHashes[f]
         else:
@@ -315,9 +307,9 @@ def ftpsmartsync(safe=True):
     ftp.sendHashes(okHashes)
 
     _log().info(
-        "+ Summary: sent %d files, deleted %d files, "
+        "+ Summary: sent %d/%d files, deleted %d files, "
         "%d files could not be sent"
-        % (len(sentHashes), len(todel), len(tosend) - len(sentHashes))
+        % (len(sentHashes), itotal, len(todel), len(tosend) - len(sentHashes))
     )
 
     return ok

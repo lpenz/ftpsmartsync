@@ -9,9 +9,8 @@ import os
 import unittest
 import tempfile
 import shutil
-import ftplib
-import hashlib
 import logging
+import socket
 
 import threading
 
@@ -26,69 +25,81 @@ from pyftpdlib.servers import FTPServer
 
 import ftpsmartsync
 
-logging.getLogger().setLevel(logging.DEBUG)
+logging.basicConfig(format="%(asctime)s %(name)s %(message)s", level=logging.DEBUG)
 
 
-def ftpd_threadfunction(quitEv, exc, tmpdir, user, secret, port):
-    try:
+class FtpServer:
+    def __init__(self, path, user, secret, port):
+        self.path = path
+        self.user = user
+        self.secret = secret
+        self.port = port
+        self.log = logging.getLogger(str(self.__class__))
+        self.sockfd = None
+        self.thread = None
+        self.server = None
+        self.quit_event = threading.Event()
+        self.exc_queue = queue.Queue()
+
+    @staticmethod
+    def threadfunction(quit_event, exc_queue, server):
+        log = logging.getLogger("ftpthread")
+        try:
+            while not quit_event.isSet():
+                log.info("calling server.serve_forever")
+                server.serve_forever(timeout=1, blocking=True)
+        except Exception as e:
+            exc_queue.put(e)
+        else:
+            exc_queue.put(None)
+
+    def start(self):
         authorizer = DummyAuthorizer()
-        authorizer.add_user(user, secret, tmpdir, perm="elradfmwM")
+        authorizer.add_user(self.user, self.secret, self.path, perm="elradfmwM")
         # authorizer.add_anonymous("/home/nobody")
         handler = FTPHandler
         handler.authorizer = authorizer
-        server = FTPServer(("127.0.0.1", port), handler)
-        while not quitEv.isSet():
-            server.serve_forever(timeout=1, blocking=False)
-    except Exception as e:
-        exc.put(e)
-    else:
-        exc.put(None)
+        self.sockfd = socket.socket()
+        self.sockfd.bind(("127.0.0.1", self.port))
+        self.server = FTPServer(self.sockfd, handler)
+        args = (self.quit_event, self.exc_queue, self.server)
+        self.thread = threading.Thread(target=FtpServer.threadfunction, args=args)
+        self.log.info("starting thread")
+        self.thread.start()
 
-
-def dirInfo(top):
-    rv = {}
-    for root, dirs, files in os.walk(top):
-        for name in files:
-            fullname = os.path.join(root, name)
-            with open(fullname, "rb") as fd:
-                relname = os.path.relpath(fullname, top)
-                h = hashlib.sha1()
-                h.update(fd.read())
-                rv[relname] = h.hexdigest()
-    return rv
+    def close(self):
+        self.log.info("FTPServer: closing")
+        self.log.info("quit_event.set")
+        self.quit_event.set()
+        self.log.info("server.close")
+        self.server.close()
+        self.log.info("thread.join")
+        self.thread.join()
+        self.log.info("sockfd.close")
+        self.sockfd.close()
+        exc = self.exc_queue.get()
+        if exc:
+            raise exc
 
 
 class TestsFtpsmartsyncBase(object):
     def setUp(self):
-        self.ftpdQuitEv = threading.Event()
-        self.ftpdExc = queue.Queue()
-        self.ftpdDir = tempfile.mkdtemp()
+        self.log = logging.getLogger(str(self.__class__))
+        self.srcpath = tempfile.mkdtemp()
+        self.dstpath = tempfile.mkdtemp()
         self.user = "user"
         self.secret = "secret"
         self.port = 2121
-        args = (
-            self.ftpdQuitEv,
-            self.ftpdExc,
-            self.ftpdDir,
-            self.user,
-            self.secret,
-            self.port,
-        )
-        self.ftpd = threading.Thread(target=ftpd_threadfunction, args=args)
-        self.ftpd.start()
-        for i in range(10):
-            try:
-                ftplib.FTP("127.0.0.1", self.user, self.secret)
-                break
-            except Exception:
-                pass
+        self.ftpserver = FtpServer(self.dstpath, self.user, self.secret, self.port)
+        self.ftpserver.start()
 
     def tearDown(self):
-        self.ftpdQuitEv.set()
-        shutil.rmtree(self.ftpdDir)
-        exc = self.ftpdExc.get()
-        if exc:
-            raise exc
+        self.log.info("tearing down")
+        try:
+            self.ftpserver.close()
+        finally:
+            shutil.rmtree(self.srcpath)
+            shutil.rmtree(self.dstpath)
 
 
 class TestsBasic(unittest.TestCase):
@@ -109,8 +120,12 @@ class TestsBasic(unittest.TestCase):
 class TestsFtpsmartsync(TestsFtpsmartsyncBase, unittest.TestCase):
     def setUp(self):
         TestsFtpsmartsyncBase.setUp(self)
-        with open(".ftp_upstream", "w") as fd:
+        with open(os.path.join(self.srcpath, ".ftp_upstream"), "w") as fd:
             fd.write("ftp://{}@127.0.0.1:{}/\n".format(self.user, self.port))
+        with open(os.path.join(self.srcpath, "myfile1.txt"), "w") as fd:
+            fd.write("myfile1.txt")
+        with open(os.path.join(self.srcpath, "myfile2.txt"), "w") as fd:
+            fd.write("myfile2.txt")
         with open(os.path.expanduser("~/.netrc"), "w") as fd:
             os.fchmod(fd.fileno(), 0o600)
             fd.write("machine 127.0.0.1\n")
@@ -119,15 +134,17 @@ class TestsFtpsmartsync(TestsFtpsmartsyncBase, unittest.TestCase):
 
     def tearDown(self):
         TestsFtpsmartsyncBase.tearDown(self)
-        os.unlink(".ftp_upstream")
         os.unlink(os.path.expanduser("~/.netrc"))
 
     def test_ftpupstream(self):
-        local = dirInfo(".")
-        ftpsmartsync.ftpsmartsync()
+        self.log.warning("src %s, dst %s", self.srcpath, self.dstpath)
+        _, local = ftpsmartsync.localFilesGet(self.srcpath)
+        self.log.warning("src %s = %d", self.srcpath, len(local))
+        ftpsmartsync.ftpsmartsync(self.srcpath)
         self.maxDiff = None
-        remote = dirInfo(self.ftpdDir)
+        _, remote = ftpsmartsync.localFilesGet(self.dstpath)
         remote.pop("hashes.txt", None)
+        self.log.warning("dst %s = %d", self.dstpath, len(remote))
         self.assertEqual(local, remote)
 
 

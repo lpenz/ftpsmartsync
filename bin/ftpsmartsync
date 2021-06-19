@@ -68,7 +68,7 @@ def main():
         '-d', '--debug', action=LoggingDebug, help='Show debug messages')
     args = parser.parse_args()
 
-    ftpsmartsync.ftpsmartsync(safe=args.safe)
+    ftpsmartsync.ftpsmartsync(path='.', safe=args.safe)
 
 
 if __name__ == '__main__':
