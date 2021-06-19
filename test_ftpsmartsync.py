@@ -91,6 +91,21 @@ class TestsFtpsmartsyncBase(object):
             raise exc
 
 
+class TestsBasic(unittest.TestCase):
+    def testLocalHashes(self):
+        path = tempfile.mkdtemp()
+        try:
+            with open(os.path.join(path, "test.txt"), "w") as fd:
+                fd.write("test.txt")
+            files, hashes = ftpsmartsync.localFilesGet(path)
+            assert len(files)
+            assert "test.txt" in files
+            assert len(hashes)
+            assert "test.txt" in hashes
+        finally:
+            shutil.rmtree(path)
+
+
 class TestsFtpsmartsync(TestsFtpsmartsyncBase, unittest.TestCase):
     def setUp(self):
         TestsFtpsmartsyncBase.setUp(self)
@@ -103,9 +118,9 @@ class TestsFtpsmartsync(TestsFtpsmartsyncBase, unittest.TestCase):
             fd.write("password {}\n".format(self.secret))
 
     def tearDown(self):
+        TestsFtpsmartsyncBase.tearDown(self)
         os.unlink(".ftp_upstream")
         os.unlink(os.path.expanduser("~/.netrc"))
-        TestsFtpsmartsyncBase.tearDown(self)
 
     def test_ftpupstream(self):
         local = dirInfo(".")
