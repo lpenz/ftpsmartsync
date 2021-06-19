@@ -14,6 +14,21 @@ jobs:
       - uses: piotrpawlaczek/python-blacken@release/stable
         with:
           line-length: 88
+  install:
+    strategy:
+      matrix:
+        python-version:
+          - 3.6
+          - 3.7
+          - 3.8
+          - 3.9
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/pyinstall
   test:
     strategy:
       matrix:
@@ -28,20 +43,7 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: install requirements
-        run: |
-          set -e -x
-          pip install -r requirements.txt
-          pip install pytest pytest-cov
-      - name: run tests
-        run: |
-          set -e -x
-          pytest --cov
-      - name: test installation
-        run: |
-          set -e -x
-          python setup.py install
-          find . -type f
+      - uses: ./.github/actions/pytest
       - uses: AndreMiras/coveralls-python-action@v20201129
         with:
           parallel: true

@@ -1,0 +1,11 @@
+name: pyinstall
+description: Run setup.py install
+runs:
+  using: "composite"
+  steps:
+    - name: test setup.py install
+      run: |
+        set -e -x
+        python setup.py install
+      shell: bash
+

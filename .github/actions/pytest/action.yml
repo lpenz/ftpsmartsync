@@ -1,0 +1,13 @@
+name: pytest
+description: Run pytest-cov
+runs:
+  using: "composite"
+  steps:
+    - name: install requirements
+      run: |
+        set -e -x
+        pip install -r requirements.txt
+        pip install pytest pytest-cov
+        pytest --cov
+      shell: bash
+
