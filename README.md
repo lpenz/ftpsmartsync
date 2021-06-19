@@ -1,5 +1,6 @@
 [![CI](https://github.com/lpenz/ftpsmartsync/actions/workflows/ci.yml/badge.svg)](https://github.com/lpenz/ftpsmartsync/actions/workflows/ci.yml)
 [![coveralls](https://coveralls.io/repos/github/lpenz/ftpsmartsync/badge.svg?branch=main)](https://coveralls.io/github/lpenz/ftpsmartsync?branch=main)
+[![packagecloud](https://img.shields.io/badge/deb-packagecloud.io-844fec.svg)](https://packagecloud.io/app/lpenz/debian/search?q=ftpsmartsync)
 
 
 # ftpsmartsync

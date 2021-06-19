@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+"""
+Output various information about git's current HEAD in a format
+useful in github actions.
+"""
+
+import re
+import argparse
+import logging
+import functools
+import subprocess
+
+
+@functools.lru_cache()
+def log():
+    return logging.getLogger()
+
+
+def runcmd(cmd):
+    log().info("+ " + " ".join(cmd))
+    return subprocess.check_output(cmd, encoding="utf-8")
+
+
+def gitinfo_get():
+    gitinfo = {}
+    desc = runcmd(["git", "describe", "--tags"]).strip()
+    gitinfo["gitdescribe"] = desc
+    m = re.match(r"""(?P<tag>.*)-(?P<dist>[0-9]+)-g[0-9a-f]+""", desc)
+    if m:
+        gitinfo["lasttag"] = m.group("tag")
+        gitinfo["distance"] = m.group("dist")
+        gitinfo["tagdistance"] = "{}-{}".format(m.group("tag"), m.group("dist"))
+    return gitinfo
+
+
+def gitinfo_output(gitinfo):
+    for k, v in gitinfo.items():
+        print("::set-output name={}::{}".format(k, v))
+        print("debug: set-output name={}::{}".format(k, v))
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("-v", "--verbose", help="Be more verbose")
+    args = parser.parse_args()
+    if args.verbose:
+        log().setLevel(logging.INFO)
+    gitinfo = gitinfo_get()
+    gitinfo_output(gitinfo)
+
+
+if __name__ == "__main__":
+    main()

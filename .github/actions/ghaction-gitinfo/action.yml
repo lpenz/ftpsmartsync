@@ -1,0 +1,9 @@
+---
+name: ghaction-gitinfo
+description: Output information about the HEAD of the git repository
+outputs:
+  gitdescribe:
+    description: Output of "git describe --tags"
+runs:
+  using: 'docker'
+  image: 'Dockerfile'

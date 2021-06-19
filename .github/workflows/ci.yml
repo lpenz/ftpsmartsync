@@ -57,4 +57,25 @@ jobs:
       - uses: AndreMiras/coveralls-python-action@v20201129
         with:
           parallel-finished: true
+  packagecloud:
+    needs: [ omnilint, black, install, test ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - id: gitinfo
+        uses: ./.github/actions/ghaction-gitinfo
+      - uses: ./.github/actions/ghaction-python-stdeb
+        with:
+          debian_revision: ${{ steps.gitinfo.outputs.distance }}
+      - run: |
+          dpkg --info *.deb
+          dpkg --contents *.deb
+      - uses: docker://lpenz/ghaction-packagecloud:v0.3
+        if: github.ref == 'refs/heads/main'
+        with:
+          repository: debian/debian/buster
+        env:
+          PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
 

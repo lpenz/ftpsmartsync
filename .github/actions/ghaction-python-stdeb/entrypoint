@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -e -x
+
+python3 setup.py --command-packages=stdeb.command \
+        sdist_dsc --debian-version "$INPUT_DEBIAN_REVISION" \
+        bdist_deb
+cp -l ./deb_dist/*.deb .
