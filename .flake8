@@ -1,2 +1,4 @@
 [flake8]
 max-line-length = 88
+ignore = N813,N802,N806
+
