@@ -73,7 +73,7 @@ jobs:
           dpkg --info *.deb
           dpkg --contents *.deb
       - uses: docker://lpenz/ghaction-packagecloud:v0.3
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         with:
           repository: debian/debian/buster
         env:
