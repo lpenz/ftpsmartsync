@@ -3,9 +3,9 @@ description: Run setup.py install
 runs:
   using: "composite"
   steps:
-    - name: test setup.py install
+    - name: test installation
       run: |
         set -e -x
-        python setup.py install
+        python3 -m pip install .
       shell: bash
 

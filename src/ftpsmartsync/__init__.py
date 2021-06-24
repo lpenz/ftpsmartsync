@@ -28,10 +28,7 @@ import socket
 import random
 import logging
 
-PROGRAM_NAME = "ftpsmartsync"
-PROGRAM_VERSION = "1.4"
-
-__version__ = PROGRAM_VERSION
+__version__ = "1.4"
 
 HASHFILENAME = "hashes.txt"
 

@@ -6,8 +6,8 @@ runs:
     - name: install requirements
       run: |
         set -e -x
-        pip install -r requirements.txt
         pip install pytest pytest-cov
+        pip install -e .[test]
         pytest --cov
       shell: bash
 
