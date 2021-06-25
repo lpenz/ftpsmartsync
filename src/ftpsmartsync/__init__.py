@@ -28,7 +28,7 @@ import socket
 import random
 import logging
 
-__version__ = "1.4"
+__version__ = "1.4.1"
 
 HASHFILENAME = "hashes.txt"
 
