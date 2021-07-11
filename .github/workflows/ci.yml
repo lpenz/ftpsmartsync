@@ -48,7 +48,6 @@ jobs:
         with:
           parallel: true
           flag-name: python-${{ matrix.python-version }}
-          path-to-lcov: .coverage
           github-token: ${{ secrets.GITHUB_TOKEN }}
   coverage-finish:
     needs: test
@@ -62,16 +61,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       - id: version
         uses: docker://lpenz/ghaction-version-gen:0.3
-      - uses: ./.github/actions/ghaction-python-stdeb
+      - uses: docker://lpenz/ghaction-python-stdeb:0.2
         with:
           debian_revision: ${{ steps.version.outputs.distance }}
-      - run: |
-          dpkg --info *.deb
-          dpkg --contents *.deb
       - uses: docker://lpenz/ghaction-packagecloud:v0.3
         if: steps.version.outputs.version_commit != ''
         with:
