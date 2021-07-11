@@ -27,15 +27,6 @@ directory with only a few different files, as long as they are always
 sent by ftpsmartsync.
 
 
-## Options
-
-**-h** Help.
-
-**-q** Quiet mode.
-
-**-s** Safe mode: sends hashes.txt after every successful file transfer.
-
-
 ## Authors
 
 Originaly written by [Leandro Penz](http://lpenz.github.com)
