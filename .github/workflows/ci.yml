@@ -1,31 +1,32 @@
 ---
 name: CI
-on: [ push, pull_request ]
+on: [ workflow_dispatch, push, pull_request ]
 jobs:
   omnilint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: docker://lpenz/omnilint:v0.2
+      - uses: actions/checkout@v3.0.2
+      - uses: docker://lpenz/omnilint:0.5
   black:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: piotrpawlaczek/python-blacken@release/stable
+      - uses: actions/checkout@v3.0.2
+      - uses: piotrpawlaczek/python-blacken@v22.3.0
         with:
           line-length: 88
   install:
     strategy:
       matrix:
         python-version:
-          - 3.6
-          - 3.7
-          - 3.8
-          - 3.9
+          - "3.6"
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3.0.2
+      - uses: actions/setup-python@v4.2.0
         with:
           python-version: ${{ matrix.python-version }}
       - run: python3 -m pip install .
@@ -33,14 +34,15 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - 3.6
-          - 3.7
-          - 3.8
-          - 3.9
+          - "3.6"
+          - "3.7"
+          - "3.8"
+          - "3.9"
+          - "3.10"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3.0.2
+      - uses: actions/setup-python@v4.2.0
         with:
           python-version: ${{ matrix.python-version }}
       - uses: lpenz/ghaction-pytest-cov@v1
@@ -60,13 +62,13 @@ jobs:
     needs: [ omnilint, black, install, test ]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.0.2
       - id: version
-        uses: docker://lpenz/ghaction-version-gen:0.3
+        uses: docker://lpenz/ghaction-version-gen:0.10.0
       - uses: docker://lpenz/ghaction-python-stdeb:0.3
         with:
           debian_revision: ${{ steps.version.outputs.distance }}
-      - uses: docker://lpenz/ghaction-packagecloud:v0.3
+      - uses: docker://lpenz/ghaction-packagecloud:0.4
         if: steps.version.outputs.version_commit != ''
         with:
           repository: debian/debian/bullseye

@@ -159,9 +159,9 @@ class Ftp:
         remoteFiles = set()
         remoteHashes = {}
 
-        def remoteHashesGet(l):
+        def remoteHashesGet(line):
             r = re.compile("^(.+) ([a-f0-9]+)$")
-            m = r.match(l)
+            m = r.match(line)
             remoteFiles.add(m.group(1))
             remoteHashes[m.group(1)] = m.group(2)
 
