@@ -1,77 +1,23 @@
 ---
 name: CI
-on: [ workflow_dispatch, push, pull_request ]
+on: [workflow_dispatch, push, pull_request]  # yamllint disable-line rule:truthy
 jobs:
   omnilint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.0.2
-      - uses: docker://lpenz/omnilint:0.5
-  black:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3.0.2
-      - uses: piotrpawlaczek/python-blacken@v22.3.0
-        with:
-          line-length: 88
-  install:
-    strategy:
-      matrix:
-        python-version:
-          - "3.6"
-          - "3.7"
-          - "3.8"
-          - "3.9"
-          - "3.10"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3.0.2
-      - uses: actions/setup-python@v4.2.0
-        with:
-          python-version: ${{ matrix.python-version }}
-      - run: python3 -m pip install .
-  test:
-    strategy:
-      matrix:
-        python-version:
-          - "3.6"
-          - "3.7"
-          - "3.8"
-          - "3.9"
-          - "3.10"
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3.0.2
-      - uses: actions/setup-python@v4.2.0
-        with:
-          python-version: ${{ matrix.python-version }}
-      - uses: lpenz/ghaction-pytest-cov@v1
-      - uses: AndreMiras/coveralls-python-action@v20201129
-        with:
-          parallel: true
-          flag-name: python-${{ matrix.python-version }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-  coverage-finish:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: AndreMiras/coveralls-python-action@v20201129
-        with:
-          parallel-finished: true
-  packagecloud:
-    needs: [ omnilint, black, install, test ]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3.0.2
-      - id: version
-        uses: docker://lpenz/ghaction-version-gen:0.10.0
-      - uses: docker://lpenz/ghaction-python-stdeb:0.3
-        with:
-          debian_revision: ${{ steps.version.outputs.distance }}
-      - uses: docker://lpenz/ghaction-packagecloud:0.4
-        if: steps.version.outputs.version_commit != ''
-        with:
-          repository: debian/debian/bullseye
-        env:
-          PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
-
+      - uses: actions/checkout@v5.0.0
+      - uses: docker://lpenz/omnilint:0.5.2
+  python:
+    uses: lpenz/ghworkflow-python/.github/workflows/python.yml@v0.9.0
+    with:
+      coveralls: true
+      mypy: false
+      docs: false
+      publish_pypi: true
+      publish_github_release: true
+      publish_packagecloud_repository_deb: |
+        ["debian/debian/trixie",
+         "ubuntu/ubuntu/noble"]
+    secrets:
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
