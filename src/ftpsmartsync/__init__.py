@@ -4,12 +4,13 @@
 
 """A tool to synchronize the current directory remotly using FTP."""
 
-import sys
 import os
+import sys
 
 try:
-    import gnomekeyring
     from getpass import getpass
+
+    import gnomekeyring
 except ImportError:
     gtkpresence = False
 else:
@@ -19,14 +20,14 @@ try:
     from urllib.parse import urlparse
 except ImportError:
     from urlparse import urlparse
-from netrc import netrc
 import ftplib
 import hashlib
-import re
-from tempfile import TemporaryFile
-import socket
-import random
 import logging
+import random
+import re
+import socket
+from netrc import netrc
+from tempfile import TemporaryFile
 
 __version__ = "1.4.1"
 

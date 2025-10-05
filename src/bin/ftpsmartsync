@@ -23,8 +23,8 @@ when synchronizing a directory with only a few different files,
 as long as they are always sent by ftpsmartsync.
 """
 
-import logging
 import argparse
+import logging
 
 import ftpsmartsync
 
@@ -52,24 +52,25 @@ class LoggingDebug(LoggingAction):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        '--version',
-        action='version',
-        version='%(prog)s ' + ftpsmartsync.__version__)
+        "--version", action="version", version="%(prog)s " + ftpsmartsync.__version__
+    )
     parser.add_argument(
         "-s",
         "--safe",
         action="store_true",
         default=False,
-        help="Safe mode: sends hashes.txt after every "
-        "successful file transfer.")
+        help="Safe mode: sends hashes.txt after every " "successful file transfer.",
+    )
     parser.add_argument(
-        '-v', '--verbose', action=LoggingVerbose, help='Be more verbose')
+        "-v", "--verbose", action=LoggingVerbose, help="Be more verbose"
+    )
     parser.add_argument(
-        '-d', '--debug', action=LoggingDebug, help='Show debug messages')
+        "-d", "--debug", action=LoggingDebug, help="Show debug messages"
+    )
     args = parser.parse_args()
 
-    ftpsmartsync.ftpsmartsync(path='.', safe=args.safe)
+    ftpsmartsync.ftpsmartsync(path=".", safe=args.safe)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
