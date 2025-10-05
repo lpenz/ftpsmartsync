@@ -8,11 +8,12 @@ jobs:
       - uses: actions/checkout@v5.0.0
       - uses: docker://lpenz/omnilint:0.5.2
   python:
-    uses: lpenz/ghworkflow-python/.github/workflows/python.yml@v0.9.0
+    uses: lpenz/ghworkflow-python/.github/workflows/python.yml@v0.10.0
     with:
       coveralls: true
       mypy: false
       docs: false
+      deb: true
       publish_pypi: true
       publish_github_release: true
       publish_packagecloud_repository_deb: |
