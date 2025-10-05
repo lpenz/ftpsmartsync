@@ -29,7 +29,7 @@ import socket
 from netrc import netrc
 from tempfile import TemporaryFile
 
-__version__ = "1.4.1"
+__version__ = "1.4.2"
 
 HASHFILENAME = "hashes.txt"
 
